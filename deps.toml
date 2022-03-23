@@ -1,0 +1,8 @@
+depsversion = "0.0.0"
+
+name = "piot/nimble-steps-serialize-c"
+version = "0.0.0"
+
+[[dependencies]]
+name = 'piot/nimble-steps-c'
+version = "*"
