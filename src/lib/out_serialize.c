@@ -90,9 +90,13 @@ int nbsStepsOutSerialize(struct FldOutStream* stream, StepId startStepId, const 
 
 int nbsStepsOutSerializeAdvanceIfNeeded(StepId* startStepId, const NbsSteps* steps)
 {
+    if (steps->stepsCount == 0) {
+      CLOG_WARN("no steps in buffer, so I wont advance")
+      return 0;
+    }
     StepId lastAvailableId = steps->expectedReadId + steps->stepsCount - 1;
     if (*startStepId > lastAvailableId) {
-        CLOG_SOFT_ERROR("startStepId is after the last thing I know here. %08X last: %08X", *startStepId,
+        CLOG_SOFT_ERROR("nbsStepsOutSerializeAdvanceIfNeeded: startStepId is after the last thing I know here. %08X last: %08X", *startStepId,
                         lastAvailableId);
         return -2;
     }
