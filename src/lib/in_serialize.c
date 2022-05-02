@@ -126,10 +126,10 @@ int nbsStepsInSerializeAuthoritativeStep(NimbleStepsOutSerializeLocalParticipant
 }
 
 int nbsStepsInSerializeAuthoritativeStepHelper(NimbleStepsOutSerializeLocalParticipants* participants,
-                                               const uint8_t* stepBuf, size_t maxCount)
+                                               const uint8_t* stepBuf, size_t octetCount)
 {
     FldInStream stepStream;
-    fldInStreamInit(&stepStream, stepBuf, maxCount);
+    fldInStreamInit(&stepStream, stepBuf, octetCount);
 
     return nbsStepsInSerializeAuthoritativeStep(participants, &stepStream);
 }
