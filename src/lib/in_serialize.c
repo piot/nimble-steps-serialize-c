@@ -47,8 +47,8 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
         fldInStreamReadOctets(stream, buf, stepOctetCount);
         StepId deserializedStepId = firstStepId + i;
         if (deserializedStepId > target->expectedWriteId) {
-            StepId expectedNext = target->expectedWriteId;
-            size_t missingStepCount = deserializedStepId - expectedNext;
+            CLOG_EXECUTE(StepId expectedNext = target->expectedWriteId;)
+            CLOG_EXECUTE(size_t missingStepCount = deserializedStepId - expectedNext;)
             CLOG_VERBOSE("dropped %zu counts, filling them with default", missingStepCount);
             return -44;
         } else if (deserializedStepId < target->expectedWriteId) {

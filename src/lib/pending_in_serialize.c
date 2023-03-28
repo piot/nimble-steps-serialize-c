@@ -50,7 +50,7 @@ static int nbsPendingStepsInSerializeRange(FldInStream* stream, StepId reference
         addedSteps += actualNewStepsAdded;
     }
 
-    CLOG_VERBOSE("added %d steps from server", addedSteps)
+    CLOG_VERBOSE("added %zd steps from server", addedSteps)
 
     return addedSteps;
 }
