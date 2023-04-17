@@ -39,7 +39,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
 
     StepId lastIncludedStepIdInStream = firstStepId + stepsThatFollow - 1;
     if (lastIncludedStepIdInStream < target->expectedWriteId) {
-        CLOG_WARN("stepsInSerialize: old steps. last is %08X and waiting for %08X", lastIncludedStepIdInStream, target->expectedWriteId)
+        CLOG_NOTICE("stepsInSerialize: old steps. last is %08X and waiting for %08X", lastIncludedStepIdInStream, target->expectedWriteId)
     }
 
     for (size_t i = 0; i < stepsThatFollow; ++i) {
@@ -74,7 +74,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
         }
     }
 
-    return addedSteps;
+    return (int)addedSteps;
 }
 
 static int participantsFindDuplicate(NimbleStepsOutSerializeLocalParticipant* participants, size_t count, uint8_t participantIndex)

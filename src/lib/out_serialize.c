@@ -107,9 +107,18 @@ int nbsStepsOutSerializeAdvanceIfNeeded(StepId* startStepId, const NbsSteps* ste
     return 0;
 }
 
+/// Serializes a Step for one or more participants with a header
+/// Format is [ParticipantCount] [ [LocalIndex] [PayloadCount] [Payload] ].
+/// @param participants
+/// @param stepBuf
+/// @param maxCount
+/// @return
 int nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants* participants, uint8_t* stepBuf,
                              size_t maxCount)
 {
+    if (participants->participantCount == 0) {
+        CLOG_ERROR("can not serialize steps with no participants");
+    }
     FldOutStream stepStream;
     fldOutStreamInit(&stepStream, stepBuf, maxCount);
     fldOutStreamWriteUInt8(&stepStream, participants->participantCount);
