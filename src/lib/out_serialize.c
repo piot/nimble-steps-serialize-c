@@ -41,7 +41,11 @@ int nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId s
 
     // CLOG_INFO("stepId: %08X redundancyCount:%d storedCount:%d", startStepId, redundancyCount, steps->stepsCount);
     for (size_t i = 0; i < redundancyCount; ++i) {
-        int octetsCountInStep = nbsStepsReadAtStep(steps, stepIdToWrite, tempBuf, 1024);
+        int index = nbsStepsGetIndexForStep(steps, stepIdToWrite);
+        if (index < 0) {
+          return index;
+        }
+        int octetsCountInStep = nbsStepsReadAtIndex(steps, index, tempBuf, 1024);
         if (octetsCountInStep < 0) {
             CLOG_WARN("could not read steps");
             return octetsCountInStep;
