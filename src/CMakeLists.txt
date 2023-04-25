@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-project(nimble_steps_serialize_example C)
+project(nimble_steps_serialize C)
 
 set(CMAKE_C_STANDARD 11)
 
@@ -26,6 +26,7 @@ include_directories(${deps}piot/discoid-c/src/include)
 include_directories(${deps}piot/tiny-libc/src/include)
 include_directories(${deps}piot/flood-c/src/include)
 include_directories(${deps}piot/nimble-steps-c/src/include)
+include_directories(${deps}piot/imprint/src/include)
 include_directories(include)
 
 file(GLOB_RECURSE deps_src FOLLOW_SYMLINKS
@@ -36,10 +37,9 @@ file(GLOB_RECURSE lib_src FOLLOW_SYMLINKS
         "lib/*.c"
         )
 
-add_executable(nimble_steps_serialize_example
+add_library(nimble_steps_serialize
     ${deps_src}
     ${lib_src}
-    examples/main.c
 )
 
-target_link_libraries(nimble_steps_serialize_example m)
+target_link_libraries(nimble_steps_serialize m)
