@@ -39,7 +39,8 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
 
     StepId lastIncludedStepIdInStream = firstStepId + stepsThatFollow - 1;
     if (lastIncludedStepIdInStream < target->expectedWriteId) {
-        CLOG_NOTICE("stepsInSerialize: old steps. last is %08X and waiting for %08X", lastIncludedStepIdInStream, target->expectedWriteId)
+        CLOG_NOTICE("stepsInSerialize: old steps. last is %08X and waiting for %08X", lastIncludedStepIdInStream,
+                    target->expectedWriteId)
     }
 
     for (size_t i = 0; i < stepsThatFollow; ++i) {
@@ -58,11 +59,16 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
         } else {
             // CLOG_VERBOSE("got exactly what I was waiting for: %d", stepId);
             if (buf[3] != 0) {
-                CLOG_VERBOSE("received client step %08X action %d", deserializedStepId, buf[3]);
+                CLOG_C_VERBOSE(&target->log, "received client step %08X action %d", deserializedStepId, buf[3]);
             }
         }
 
         if (target->stepsCount < NBS_WINDOW_SIZE / 2) {
+            if (discoidBufferWriteAvailable(&target->stepsData) <= stepOctetCount) {
+                CLOG_WARN("step buffer count is not full, but the step-data is. %zu left, but needed to write %d",
+                          discoidBufferWriteAvailable(&target->stepsData), stepOctetCount)
+                return -55;
+            }
             int errorCode = nbsStepsWrite(target, deserializedStepId, buf, stepOctetCount);
             if (errorCode < 0) {
                 return errorCode;
@@ -70,14 +76,15 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
 
             addedSteps++;
         } else {
-            CLOG_WARN("step buffer is full %zu", target->stepsCount);
+            CLOG_WARN("step buffer is full %zu step count out of %d", target->stepsCount, NBS_WINDOW_SIZE / 2);
         }
     }
 
-    return (int)addedSteps;
+    return (int) addedSteps;
 }
 
-static int participantsFindDuplicate(NimbleStepsOutSerializeLocalParticipant* participants, size_t count, uint8_t participantIndex)
+static int participantsFindDuplicate(NimbleStepsOutSerializeLocalParticipant* participants, size_t count,
+                                     uint8_t participantIndex)
 {
     for (size_t i = 0; i < count; ++i) {
         NimbleStepsOutSerializeLocalParticipant* participant = &participants[i];
@@ -109,17 +116,17 @@ int nbsStepsInSerializeAuthoritativeStep(NimbleStepsOutSerializeLocalParticipant
         fldInStreamReadUInt8(stream, &participant->participantIndex);
         uint8_t payloadCountValue;
         fldInStreamReadUInt8(stream, &payloadCountValue);
-        #if 1
+#if 1
         int index = participantsFindDuplicate(participants->participants, i, participant->participantIndex);
         if (index >= 0) {
             CLOG_ERROR("Problem with duplicate %d", index);
         }
-        #endif
+#endif
 
         participant->payloadCount = payloadCountValue;
-        participant->payload = tc_malloc(participant->payloadCount);
-
-        fldInStreamReadOctets(stream, (uint8_t*) participant->payload, participant->payloadCount);
+        participant->payload = stream->p;
+        stream->p += participant->payloadCount;
+        // fldInStreamReadOctets(stream, (uint8_t*) participant->payload, participant->payloadCount);
     }
 
     return stream->pos;

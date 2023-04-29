@@ -43,7 +43,7 @@ int nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId s
     for (size_t i = 0; i < redundancyCount; ++i) {
         int index = nbsStepsGetIndexForStep(steps, stepIdToWrite);
         if (index < 0) {
-          return index;
+            return index;
         }
         int octetsCountInStep = nbsStepsReadAtIndex(steps, index, tempBuf, 1024);
         if (octetsCountInStep < 0) {
@@ -92,16 +92,26 @@ int nbsStepsOutSerialize(struct FldOutStream* stream, StepId startStepId, const 
     return nbsStepsOutSerializeFixedCount(stream, startStepId, redundancyCount, steps);
 }
 
+int nbsStepsOutSerializeCalculateCombinedSize(size_t participantCount, size_t singleParticipantStepOctetCount)
+{
+    const int fixedHeaderSize = 1;            // participantCount
+    const int overheadForEachParticipant = 2; // index and payloadcount
+
+    return fixedHeaderSize + participantCount * overheadForEachParticipant +
+           participantCount * singleParticipantStepOctetCount;
+}
+
 int nbsStepsOutSerializeAdvanceIfNeeded(StepId* startStepId, const NbsSteps* steps)
 {
     if (steps->stepsCount == 0) {
-      CLOG_WARN("no steps in buffer, so I wont advance")
-      return 0;
+        CLOG_WARN("no steps in buffer, so I wont advance")
+        return 0;
     }
     StepId lastAvailableId = steps->expectedReadId + steps->stepsCount - 1;
     if (*startStepId > lastAvailableId) {
-        CLOG_SOFT_ERROR("nbsStepsOutSerializeAdvanceIfNeeded: startStepId is after the last thing I know here. %08X last: %08X", *startStepId,
-                        lastAvailableId);
+        CLOG_SOFT_ERROR(
+            "nbsStepsOutSerializeAdvanceIfNeeded: startStepId is after the last thing I know here. %08X last: %08X",
+            *startStepId, lastAvailableId);
         return -2;
     }
     size_t leftInBufferCount = lastAvailableId - *startStepId + 1;
@@ -128,7 +138,9 @@ int nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants* par
     fldOutStreamWriteUInt8(&stepStream, participants->participantCount);
     for (size_t i = 0; i < participants->participantCount; ++i) {
         const NimbleStepsOutSerializeLocalParticipant* participant = &participants->participants[i];
-
+        if (participant->participantIndex == 0) {
+            CLOG_ERROR("participantId zero is reserved. OutSerializaStep")
+        }
         fldOutStreamWriteUInt8(&stepStream, participant->participantIndex);
         fldOutStreamWriteUInt8(&stepStream, participant->payloadCount);
         fldOutStreamWriteOctets(&stepStream, participant->payload, participant->payloadCount);

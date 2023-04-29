@@ -5,8 +5,8 @@
 #ifndef NIMBLE_STEPS_SERIALIZE_H
 #define NIMBLE_STEPS_SERIALIZE_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 typedef struct NimbleStepsOutSerializeLocalParticipant {
     uint8_t participantIndex;

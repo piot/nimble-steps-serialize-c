@@ -28,7 +28,8 @@ static int nbsPendingStepsInSerializeRange(FldInStream* stream, StepId reference
     uint8_t stepOctetCount;
     size_t addedSteps = 0;
 
-    CLOG_VERBOSE("received range from server: firstStep range startId:%08X count: %d", stepId, stepsThatFollow)
+    CLOG_C_VERBOSE(&target->log, "received range from server: firstStep range startId:%08X count: %d", stepId,
+                   stepsThatFollow)
 
     for (size_t i = 0; i < stepsThatFollow; ++i) {
         fldInStreamReadUInt8(stream, &stepOctetCount);
@@ -42,7 +43,7 @@ static int nbsPendingStepsInSerializeRange(FldInStream* stream, StepId reference
         // CLOG_VERBOSE("pending steps, trying to set step %08X octetCount:%d", stepId, stepOctetCount);
         int actualNewStepsAdded = nbsPendingStepsTrySet(target, stepId, buf, stepOctetCount);
         if (actualNewStepsAdded < 0) {
-            CLOG_SOFT_ERROR("failed to set step %08X", stepId)
+            CLOG_C_SOFT_ERROR(&target->log, "failed to set step %08X", stepId)
             return actualNewStepsAdded;
         }
 
@@ -50,7 +51,7 @@ static int nbsPendingStepsInSerializeRange(FldInStream* stream, StepId reference
         addedSteps += actualNewStepsAdded;
     }
 
-    CLOG_VERBOSE("added %zd steps from server", addedSteps)
+    CLOG_C_VERBOSE(&target->log, "added %zd steps from server", addedSteps)
 
     return addedSteps;
 }

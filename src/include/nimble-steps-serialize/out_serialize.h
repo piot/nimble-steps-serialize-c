@@ -21,4 +21,6 @@ int nbsStepsOutSerializeAdvanceIfNeeded(StepId* startStepId, const NbsSteps* ste
 
 static const int NimbleSerializeMaxRedundancyCount = 3;
 
+int nbsStepsOutSerializeCalculateCombinedSize(size_t participantCount, size_t singleParticipantStepOctetCount);
+
 #endif

@@ -162,11 +162,11 @@ int testStepsSerialize()
     return 0;
 }
 
-int testPending()
+int testPending(struct ImprintAllocatorWithFree* allocatorWithFree)
 {
     NbsPendingSteps steps;
 
-    nbsPendingStepsInit(&steps, 0);
+    nbsPendingStepsInit(&steps, 0, allocatorWithFree);
     nbsPendingStepsDebugOutput(&steps, "", 1);
 
     StepId stepId = 4;
@@ -236,7 +236,7 @@ int testPending()
     return 0;
 }
 
-int testPending2()
+int testPending2(struct ImptintAllocatorWithFree* allocatorWithFree)
 {
     NbsPendingSteps steps;
 
@@ -668,10 +668,10 @@ int serverSerializeOut(Server* self)
     return 0;
 }
 
-void clientInit(Client* self)
+void clientInit(Client* self, struct ImprintAllocatorWithFree* allocatorWithFree)
 {
     udpCommunicationInit(&self->communication);
-    nbsPendingStepsInit(&self->pendingAuthoritativeSteps, 0);
+    nbsPendingStepsInit(&self->pendingAuthoritativeSteps, 0, allocatorWithFree);
     nbsStepsInit(&self->predictedSteps, 1024, 0);
     self->startStepIdToSend = 0;
 
@@ -743,13 +743,18 @@ int clientSerializeOut(Client* self)
     return 0;
 }
 
+#include <imprint/default_setup.h>
+
 int testSendReceiveServer()
 {
     Server server;
     Client client;
 
+    ImprintDefaultSetup imprintSetup;
+    imprintDefaultSetupInit(&imprintSetup, 1024 * 1024);
+
     serverInit(&server);
-    clientInit(&client);
+    clientInit(&client, &imprintSetup.slabAllocator.info);
 
     for (size_t i = 0; i < 30; ++i) {
         if ((i % 2) == 0) {
