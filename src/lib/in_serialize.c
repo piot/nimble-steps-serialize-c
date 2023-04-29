@@ -35,7 +35,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
     uint8_t stepOctetCount;
     size_t addedSteps = 0;
 
-    CLOG_VERBOSE("stepsInSerialize firstStep %08X count %zu", firstStepId, stepsThatFollow);
+    CLOG_C_VERBOSE(&target->log, "stepsInSerialize firstStep %08X count %zu", firstStepId, stepsThatFollow);
 
     StepId lastIncludedStepIdInStream = firstStepId + stepsThatFollow - 1;
     if (lastIncludedStepIdInStream < target->expectedWriteId) {

@@ -65,12 +65,12 @@ int nbsPendingStepsInSerialize(FldInStream* stream, NbsPendingSteps* target)
     uint8_t rangesThatFollow;
     fldInStreamReadUInt8(stream, &rangesThatFollow);
 
-    CLOG_VERBOSE("nimble client: Steps from server range count:%d, starting with %08X", rangesThatFollow, firstStepId)
+    CLOG_C_VERBOSE(&target->log, "nimble client: Steps from server range count:%d, starting with %08X", rangesThatFollow, firstStepId)
 
     for (size_t i = 0; i < rangesThatFollow; ++i) {
         int stepsAdded = nbsPendingStepsInSerializeRange(stream, firstStepId, target);
         if (stepsAdded < 0) {
-            CLOG_SOFT_ERROR("problem adding server ranges")
+            CLOG_C_SOFT_ERROR(&target->log, "problem adding server ranges")
             return stepsAdded;
         }
         totalStepsAdded += stepsAdded;
