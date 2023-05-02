@@ -9,7 +9,7 @@
 #include <stdint.h>
 
 typedef struct NimbleStepsOutSerializeLocalParticipant {
-    uint8_t participantIndex;
+    uint8_t participantId;
     const uint8_t* payload;
     size_t payloadCount;
 } NimbleStepsOutSerializeLocalParticipant;

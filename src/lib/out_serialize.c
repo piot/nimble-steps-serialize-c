@@ -138,10 +138,13 @@ int nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants* par
     fldOutStreamWriteUInt8(&stepStream, participants->participantCount);
     for (size_t i = 0; i < participants->participantCount; ++i) {
         const NimbleStepsOutSerializeLocalParticipant* participant = &participants->participants[i];
-        if (participant->participantIndex == 0) {
+        if (participant->participantId == 0) {
             CLOG_ERROR("participantId zero is reserved. OutSerializeStep")
         }
-        fldOutStreamWriteUInt8(&stepStream, participant->participantIndex);
+        if (participant->participantId > 32) {
+            CLOG_ERROR("too high participant id")
+        }
+        fldOutStreamWriteUInt8(&stepStream, participant->participantId);
         fldOutStreamWriteUInt8(&stepStream, participant->payloadCount);
         fldOutStreamWriteOctets(&stepStream, participant->payload, participant->payloadCount);
     }

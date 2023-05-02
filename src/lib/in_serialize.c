@@ -84,11 +84,11 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
 }
 
 static int participantsFindDuplicate(NimbleStepsOutSerializeLocalParticipant* participants, size_t count,
-                                     uint8_t participantIndex)
+                                     uint8_t participantId)
 {
     for (size_t i = 0; i < count; ++i) {
         NimbleStepsOutSerializeLocalParticipant* participant = &participants[i];
-        if (participant->participantIndex == participantIndex) {
+        if (participant->participantId == participantId) {
             return i;
         }
     }
@@ -113,11 +113,11 @@ int nbsStepsInSerializeAuthoritativeStep(NimbleStepsOutSerializeLocalParticipant
     for (size_t i = 0; i < participants->participantCount; ++i) {
         NimbleStepsOutSerializeLocalParticipant* participant = &participants->participants[i];
 
-        fldInStreamReadUInt8(stream, &participant->participantIndex);
+        fldInStreamReadUInt8(stream, &participant->participantId);
         uint8_t payloadCountValue;
         fldInStreamReadUInt8(stream, &payloadCountValue);
 #if 1
-        int index = participantsFindDuplicate(participants->participants, i, participant->participantIndex);
+        int index = participantsFindDuplicate(participants->participants, i, participant->participantId);
         if (index >= 0) {
             CLOG_ERROR("Problem with duplicate %d", index);
         }
