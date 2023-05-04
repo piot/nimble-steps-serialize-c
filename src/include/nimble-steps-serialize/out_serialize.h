@@ -9,8 +9,9 @@
 #include <nimble-steps/steps.h>
 
 struct FldOutStream;
+int nbsStepsOutSerializeCombinedStep(struct FldOutStream* stream, const uint8_t* payload, size_t octetCount);
 
-int nbsStepsOutSerialize(struct FldOutStream* stream, StepId stepId, const NbsSteps* steps);
+int nbsStepsOutSerialize(struct FldOutStream* stream, const NbsSteps* steps);
 int nbsStepsOutSerializeFixedCount(struct FldOutStream* stream, StepId startStepId, size_t redundancyCount,
                                    const NbsSteps* steps);
 int nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId startStepId, size_t redundancyCount,

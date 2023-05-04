@@ -7,7 +7,7 @@
 #include <flood/out_stream.h>
 #include <nimble-steps-serialize/out_serialize.h>
 
-static int nimbleOutSerializeStep(FldOutStream* stream, const uint8_t* payload, size_t octetCount)
+int nbsStepsOutSerializeCombinedStep(FldOutStream* stream, const uint8_t* payload, size_t octetCount)
 {
     int errorCode = fldOutStreamWriteUInt8(stream, octetCount);
     if (errorCode < 0) {
@@ -43,6 +43,7 @@ int nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId s
     for (size_t i = 0; i < redundancyCount; ++i) {
         int index = nbsStepsGetIndexForStep(steps, stepIdToWrite);
         if (index < 0) {
+            CLOG_SOFT_ERROR("could not get index for stepId %08X", stepIdToWrite)
             return index;
         }
         int octetsCountInStep = nbsStepsReadAtIndex(steps, index, tempBuf, 1024);
@@ -57,7 +58,7 @@ int nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId s
         }
         // CLOG_VERBOSE("serialize out %08X", stepIdToWrite);
 #endif
-        nimbleOutSerializeStep(stream, tempBuf, octetsCountInStep);
+        nbsStepsOutSerializeCombinedStep(stream, tempBuf, octetsCountInStep);
         stepIdToWrite++;
     }
 
@@ -75,21 +76,18 @@ int nbsStepsOutSerializeFixedCount(struct FldOutStream* stream, StepId startStep
     return nbsStepsOutSerializeFixedCountNoHeader(stream, startStepId, redundancyCount, steps);
 }
 
-int nbsStepsOutSerialize(struct FldOutStream* stream, StepId startStepId, const NbsSteps* steps)
+int nbsStepsOutSerialize(struct FldOutStream* stream, const NbsSteps* steps)
 {
-    size_t redundancyCount;
-    StepId lastAvailableId = steps->expectedReadId + steps->stepsCount - 1;
+    size_t redundancyCount = steps->stepsCount;
+    StepId firstStepId = steps->expectedReadId;
 
-    if (steps->stepsCount == 0 || startStepId > lastAvailableId) {
-        redundancyCount = 0;
-    } else {
-        redundancyCount = lastAvailableId - startStepId + 1;
-    }
-    if (redundancyCount > NimbleSerializeMaxRedundancyCount) {
+    if (redundancyCount> NimbleSerializeMaxRedundancyCount) {
         redundancyCount = NimbleSerializeMaxRedundancyCount;
+        StepId lastAvailableId = steps->expectedReadId + steps->stepsCount - 1;
+        firstStepId = lastAvailableId - redundancyCount + 1;
     }
 
-    return nbsStepsOutSerializeFixedCount(stream, startStepId, redundancyCount, steps);
+    return nbsStepsOutSerializeFixedCount(stream, firstStepId, redundancyCount, steps);
 }
 
 int nbsStepsOutSerializeCalculateCombinedSize(size_t participantCount, size_t singleParticipantStepOctetCount)

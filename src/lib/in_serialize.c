@@ -39,7 +39,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
 
     StepId lastIncludedStepIdInStream = firstStepId + stepsThatFollow - 1;
     if (lastIncludedStepIdInStream < target->expectedWriteId) {
-        CLOG_C_NOTICE(&target->log, "stepsInSerialize: old steps. last is %08X and waiting for %08X", lastIncludedStepIdInStream,
+        CLOG_C_NOTICE(&target->log, "stepsInSerialize: old steps. last from client request is %08X and the incoming buffer is waiting for %08X", lastIncludedStepIdInStream,
                     target->expectedWriteId)
     }
 
@@ -58,9 +58,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
             continue;
         } else {
             // CLOG_VERBOSE("got exactly what I was waiting for: %d", stepId);
-            if (buf[3] != 0) {
                 CLOG_C_VERBOSE(&target->log, "received client step %08X action %d", deserializedStepId, buf[3]);
-            }
         }
 
         if (target->stepsCount < NBS_WINDOW_SIZE / 2) {
