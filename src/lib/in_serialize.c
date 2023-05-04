@@ -39,7 +39,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
 
     StepId lastIncludedStepIdInStream = firstStepId + stepsThatFollow - 1;
     if (lastIncludedStepIdInStream < target->expectedWriteId) {
-        CLOG_C_NOTICE(&target->log, "stepsInSerialize: old steps. last from client request is %08X and the incoming buffer is waiting for %08X", lastIncludedStepIdInStream,
+        CLOG_C_VERBOSE(&target->log, "stepsInSerialize: old steps. last from client request is %08X and the incoming buffer is waiting for %08X", lastIncludedStepIdInStream,
                     target->expectedWriteId)
     }
 
