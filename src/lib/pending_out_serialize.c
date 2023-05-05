@@ -8,10 +8,12 @@
 #include <nimble-steps-serialize/pending_out_serialize.h>
 #include <nimble-steps/pending_steps.h>
 
-int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId, uint64_t receiveMask)
+int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId, uint64_t receiveMask,
+                                      uint16_t monotonicTimeLowerBitsMs)
 {
     fldOutStreamWriteUInt32(stream, latestStepId);
     fldOutStreamWriteUInt64(stream, receiveMask);
+    fldOutStreamWriteUInt16(stream, monotonicTimeLowerBitsMs);
 
     return 0;
 }

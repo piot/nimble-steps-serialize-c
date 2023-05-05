@@ -6,10 +6,11 @@
 #include <flood/in_stream.h>
 #include <nimble-steps-serialize/pending_in_serialize.h>
 
-int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId, uint64_t* receiveMask)
+int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId, uint64_t* receiveMask, uint16_t* clientTimeLowerBitsMs)
 {
     fldInStreamReadUInt32(stream, latestStepId);
     fldInStreamReadUInt64(stream, receiveMask);
+    fldInStreamReadUInt16(stream, clientTimeLowerBitsMs);
 
     return 0;
 }
