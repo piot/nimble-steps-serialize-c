@@ -8,6 +8,13 @@
 #include <nimble-steps-serialize/pending_out_serialize.h>
 #include <nimble-steps/pending_steps.h>
 
+/// Writes receive status into the octet stream
+/// Typically used on the client to notify the server of the received pending steps
+/// @param stream
+/// @param latestStepId
+/// @param receiveMask
+/// @param monotonicTimeLowerBitsMs
+/// @return
 int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId, uint64_t receiveMask,
                                       uint16_t monotonicTimeLowerBitsMs)
 {
@@ -18,6 +25,13 @@ int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId,
     return 0;
 }
 
+/// Writes ranges of steps into the octet stream
+/// Used on the server to send ranges with steps that the client is missing.
+/// @param stream
+/// @param steps
+/// @param ranges
+/// @param rangeCount
+/// @return
 int nbsPendingStepsSerializeOutRanges(FldOutStream* stream, const NbsSteps* steps, NbsPendingRange* ranges,
                                       size_t rangeCount)
 {

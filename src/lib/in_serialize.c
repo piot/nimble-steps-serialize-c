@@ -6,6 +6,12 @@
 #include <flood/in_stream.h>
 #include <nimble-steps-serialize/in_serialize.h>
 
+/// Serialize the header for incoming steps
+/// Reads the first TickId and how many steps that follow in order from that one.
+/// @param stream
+/// @param firstStep
+/// @param stepsThatFollow
+/// @return
 int nbsStepsInSerializeHeader(FldInStream* stream, StepId* firstStep, size_t* stepsThatFollow)
 {
     uint32_t firstStepIdValue;
@@ -20,15 +26,12 @@ int nbsStepsInSerializeHeader(FldInStream* stream, StepId* firstStep, size_t* st
     return 0;
 }
 
-size_t nbsStepsDropped(const NbsSteps* self, StepId firstReadStepId)
-{
-    if (firstReadStepId > self->expectedWriteId) {
-        return firstReadStepId - self->expectedWriteId;
-    }
-
-    return 0;
-}
-
+/// Reads steps from the steam and inserts into the target steps buffer
+/// @param stream
+/// @param target
+/// @param firstStepId
+/// @param stepsThatFollow
+/// @return negative on error
 int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepId, size_t stepsThatFollow)
 {
     uint8_t buf[1024];
@@ -39,8 +42,10 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
 
     StepId lastIncludedStepIdInStream = firstStepId + stepsThatFollow - 1;
     if (lastIncludedStepIdInStream < target->expectedWriteId) {
-        CLOG_C_VERBOSE(&target->log, "stepsInSerialize: old steps. last from client request is %08X and the incoming buffer is waiting for %08X", lastIncludedStepIdInStream,
-                    target->expectedWriteId)
+        CLOG_C_VERBOSE(
+            &target->log,
+            "stepsInSerialize: old steps. last from client request is %08X and the incoming buffer is waiting for %08X",
+            lastIncludedStepIdInStream, target->expectedWriteId)
     }
 
     for (size_t i = 0; i < stepsThatFollow; ++i) {
@@ -58,7 +63,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
             continue;
         } else {
             // CLOG_VERBOSE("got exactly what I was waiting for: %d", stepId);
-                CLOG_C_VERBOSE(&target->log, "received client step %08X action %d", deserializedStepId, buf[3]);
+            CLOG_C_VERBOSE(&target->log, "received client step %08X action %d", deserializedStepId, buf[3]);
         }
 
         if (target->stepsCount < NBS_WINDOW_SIZE / 2) {
@@ -84,17 +89,21 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
 static int participantsFindDuplicate(NimbleStepsOutSerializeLocalParticipant* participants, size_t count,
                                      uint8_t participantId)
 {
-    for (size_t i = 0; i < count; ++i) {
+    for (size_t i = 0U; i < count; ++i) {
         NimbleStepsOutSerializeLocalParticipant* participant = &participants[i];
         if (participant->participantId == participantId) {
-            return i;
+            return (int) i;
         }
     }
 
     return -1;
 }
 
-int nbsStepsInSerializeAuthoritativeStep(NimbleStepsOutSerializeLocalParticipants* participants, FldInStream* stream)
+/// Reads combined steps from the stream and returns the parts for each participant
+/// @param participants the target for the information about each participant step
+/// @param stream
+/// @return
+int nbsStepsInSerializeStepsForParticipants(NimbleStepsOutSerializeLocalParticipants* participants, FldInStream* stream)
 {
     uint8_t participantCountValue;
     int errorCode = fldInStreamReadUInt8(stream, &participantCountValue);
@@ -130,11 +139,16 @@ int nbsStepsInSerializeAuthoritativeStep(NimbleStepsOutSerializeLocalParticipant
     return stream->pos;
 }
 
-int nbsStepsInSerializeAuthoritativeStepHelper(NimbleStepsOutSerializeLocalParticipants* participants,
-                                               const uint8_t* stepBuf, size_t octetCount)
+/// Reads combined steps from the octets and returns the parts for each participant
+/// @param participants
+/// @param stepBuf
+/// @param octetCount
+/// @return
+int nbsStepsInSerializeStepsForParticipantsFromOctets(NimbleStepsOutSerializeLocalParticipants* participants,
+                                                      const uint8_t* stepBuf, size_t octetCount)
 {
     FldInStream stepStream;
     fldInStreamInit(&stepStream, stepBuf, octetCount);
 
-    return nbsStepsInSerializeAuthoritativeStep(participants, &stepStream);
+    return nbsStepsInSerializeStepsForParticipants(participants, &stepStream);
 }

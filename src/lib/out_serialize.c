@@ -7,7 +7,7 @@
 #include <flood/out_stream.h>
 #include <nimble-steps-serialize/out_serialize.h>
 
-int nbsStepsOutSerializeCombinedStep(FldOutStream* stream, const uint8_t* payload, size_t octetCount)
+static int nbsStepsOutSerializeCombinedStep(FldOutStream* stream, const uint8_t* payload, size_t octetCount)
 {
     int errorCode = fldOutStreamWriteUInt8(stream, octetCount);
     if (errorCode < 0) {
@@ -29,18 +29,24 @@ int nbsStepsOutSerializeCombinedStep(FldOutStream* stream, const uint8_t* payloa
     return 0;
 }
 
-int nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId startStepId, size_t redundancyCount,
+/// Writes combined steps to the stream starting with specified start TickId
+/// @param stream the target octet stream
+/// @param startStepId which stepId to start with
+/// @param stepCount the number of steps to write
+/// @param steps the target buffer to write the steps to
+/// @return negative on error
+int nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId startStepId, size_t stepCount,
                                            const NbsSteps* steps)
 {
     StepId stepIdToWrite = startStepId;
     uint8_t tempBuf[1024];
 
-    if (redundancyCount == 0) {
+    if (stepCount == 0) {
         return 0;
     }
 
-    // CLOG_INFO("stepId: %08X redundancyCount:%d storedCount:%d", startStepId, redundancyCount, steps->stepsCount);
-    for (size_t i = 0; i < redundancyCount; ++i) {
+    // CLOG_INFO("stepId: %08X stepCount:%d storedCount:%d", startStepId, stepCount, steps->stepsCount);
+    for (size_t i = 0; i < stepCount; ++i) {
         int index = nbsStepsGetIndexForStep(steps, stepIdToWrite);
         if (index < 0) {
             CLOG_SOFT_ERROR("could not get index for stepId %08X", stepIdToWrite)
@@ -62,11 +68,11 @@ int nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId s
         stepIdToWrite++;
     }
 
-    return redundancyCount;
+    return stepCount;
 }
 
-int nbsStepsOutSerializeFixedCount(struct FldOutStream* stream, StepId startStepId, size_t redundancyCount,
-                                   const NbsSteps* steps)
+static int nbsStepsOutSerializeFixedCount(struct FldOutStream* stream, StepId startStepId, size_t redundancyCount,
+                                          const NbsSteps* steps)
 {
     StepId stepIdToWrite = startStepId;
 
@@ -76,12 +82,18 @@ int nbsStepsOutSerializeFixedCount(struct FldOutStream* stream, StepId startStep
     return nbsStepsOutSerializeFixedCountNoHeader(stream, startStepId, redundancyCount, steps);
 }
 
+/// Writes steps to the octet stream up to a redundancy count
+/// If the number of steps in the buffer is smaller or equal to redundancy count, it starts with the first on available
+/// for reading. Otherwise it sends the last redundancy count in the buffer.
+/// @param stream
+/// @param steps
+/// @return
 int nbsStepsOutSerialize(struct FldOutStream* stream, const NbsSteps* steps)
 {
     size_t redundancyCount = steps->stepsCount;
     StepId firstStepId = steps->expectedReadId;
 
-    if (redundancyCount> NimbleSerializeMaxRedundancyCount) {
+    if (redundancyCount > NimbleSerializeMaxRedundancyCount) {
         redundancyCount = NimbleSerializeMaxRedundancyCount;
         StepId lastAvailableId = steps->expectedReadId + steps->stepsCount - 1;
         firstStepId = lastAvailableId - redundancyCount + 1;
@@ -90,6 +102,10 @@ int nbsStepsOutSerialize(struct FldOutStream* stream, const NbsSteps* steps)
     return nbsStepsOutSerializeFixedCount(stream, firstStepId, redundancyCount, steps);
 }
 
+/// Calculates the serialization overhead for the number of participants.
+/// @param participantCount
+/// @param singleParticipantStepOctetCount
+/// @return
 int nbsStepsOutSerializeCalculateCombinedSize(size_t participantCount, size_t singleParticipantStepOctetCount)
 {
     const int fixedHeaderSize = 1;            // participantCount
@@ -97,26 +113,6 @@ int nbsStepsOutSerializeCalculateCombinedSize(size_t participantCount, size_t si
 
     return fixedHeaderSize + participantCount * overheadForEachParticipant +
            participantCount * singleParticipantStepOctetCount;
-}
-
-int nbsStepsOutSerializeAdvanceIfNeeded(StepId* startStepId, const NbsSteps* steps)
-{
-    if (steps->stepsCount == 0) {
-        CLOG_WARN("no steps in buffer, so I wont advance")
-        return 0;
-    }
-    StepId lastAvailableId = steps->expectedReadId + steps->stepsCount - 1;
-    if (*startStepId > lastAvailableId) {
-        CLOG_SOFT_ERROR(
-            "nbsStepsOutSerializeAdvanceIfNeeded: startStepId is after the last thing I know here. %08X last: %08X",
-            *startStepId, lastAvailableId);
-        return -2;
-    }
-    size_t leftInBufferCount = lastAvailableId - *startStepId + 1;
-    if (leftInBufferCount > 3) {
-        *startStepId = *startStepId + 1;
-    }
-    return 0;
 }
 
 /// Serializes a Step for one or more participants with a header

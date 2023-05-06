@@ -6,7 +6,15 @@
 #include <flood/in_stream.h>
 #include <nimble-steps-serialize/pending_in_serialize.h>
 
-int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId, uint64_t* receiveMask, uint16_t* clientTimeLowerBitsMs)
+/// Reads the header for incoming pending steps
+/// Typically called on the server to determine the receive status from the client.
+/// @param stream
+/// @param latestStepId
+/// @param receiveMask
+/// @param clientTimeLowerBitsMs
+/// @return
+int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId, uint64_t* receiveMask,
+                                     uint16_t* clientTimeLowerBitsMs)
 {
     fldInStreamReadUInt32(stream, latestStepId);
     fldInStreamReadUInt64(stream, receiveMask);
@@ -57,6 +65,11 @@ static int nbsPendingStepsInSerializeRange(FldInStream* stream, StepId reference
     return addedSteps;
 }
 
+/// Reads the stream and writes into different ranges in the pending steps buffer
+/// Typically called on the client to receive steps from the server.
+/// @param stream
+/// @param target
+/// @return the total number of steps added or negative on error.
 int nbsPendingStepsInSerialize(FldInStream* stream, NbsPendingSteps* target)
 {
     size_t totalStepsAdded = 0;
@@ -66,9 +79,10 @@ int nbsPendingStepsInSerialize(FldInStream* stream, NbsPendingSteps* target)
     uint8_t rangesThatFollow;
     fldInStreamReadUInt8(stream, &rangesThatFollow);
 
-    CLOG_C_VERBOSE(&target->log, "nimble client: Steps from server range count:%d, starting with %08X", rangesThatFollow, firstStepId)
+    CLOG_C_VERBOSE(&target->log, "nimble client: Steps from server range count:%d, starting with %08X",
+                   rangesThatFollow, firstStepId)
 
-    for (size_t i = 0; i < rangesThatFollow; ++i) {
+    for (size_t i = 0U; i < rangesThatFollow; ++i) {
         int stepsAdded = nbsPendingStepsInSerializeRange(stream, firstStepId, target);
         if (stepsAdded < 0) {
             CLOG_C_SOFT_ERROR(&target->log, "problem adding server ranges")

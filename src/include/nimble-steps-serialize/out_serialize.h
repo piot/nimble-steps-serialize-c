@@ -9,18 +9,14 @@
 #include <nimble-steps/steps.h>
 
 struct FldOutStream;
-int nbsStepsOutSerializeCombinedStep(struct FldOutStream* stream, const uint8_t* payload, size_t octetCount);
 
 int nbsStepsOutSerialize(struct FldOutStream* stream, const NbsSteps* steps);
-int nbsStepsOutSerializeFixedCount(struct FldOutStream* stream, StepId startStepId, size_t redundancyCount,
-                                   const NbsSteps* steps);
 int nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId startStepId, size_t redundancyCount,
                                            const NbsSteps* steps);
 int nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants* participants, uint8_t* buf,
                              size_t maxCount);
-int nbsStepsOutSerializeAdvanceIfNeeded(StepId* startStepId, const NbsSteps* steps);
 
-static const int NimbleSerializeMaxRedundancyCount = 3;
+static const int NimbleSerializeMaxRedundancyCount = 10;
 
 int nbsStepsOutSerializeCalculateCombinedSize(size_t participantCount, size_t singleParticipantStepOctetCount);
 
