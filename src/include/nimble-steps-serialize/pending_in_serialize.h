@@ -14,6 +14,6 @@ struct FldInStream;
 
 int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId, uint64_t* receiveMask,
                                      uint16_t* monotonicTimeMsLowerBitsMs);
-int nbsPendingStepsInSerialize(struct FldInStream* stream, NbsPendingSteps* target);
+ssize_t nbsPendingStepsInSerialize(struct FldInStream* stream, NbsPendingSteps* target);
 
 #endif

@@ -1,45 +1,10 @@
 cmake_minimum_required(VERSION 3.17)
 project(nimble_steps_serialize C)
 
-set(CMAKE_C_STANDARD 11)
-
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(isDebug TRUE)
-else()
-    message("no debug")
-    set(isDebug FALSE)
-endif()
-
-
-if (isDebug)
-        message("Debug build detected")
-        add_compile_definitions(CONFIGURATION_DEBUG TYRAN_CONFIGURATION_DEBUG)
-        set(CONFIGURATION_DEBUG 1)
-endif()
-
-
-set(deps ../deps/)
-
-
-include_directories(${deps}piot/clog/src/include)
-include_directories(${deps}piot/discoid-c/src/include)
-include_directories(${deps}piot/tiny-libc/src/include)
-include_directories(${deps}piot/flood-c/src/include)
-include_directories(${deps}piot/nimble-steps-c/src/include)
-include_directories(${deps}piot/imprint/src/include)
-include_directories(include)
-
-file(GLOB_RECURSE deps_src FOLLOW_SYMLINKS
-        "${deps}*/*/src/lib/*.c"
-        )
-
-file(GLOB_RECURSE lib_src FOLLOW_SYMLINKS
-        "lib/*.c"
-        )
-
-add_library(nimble_steps_serialize
-    ${deps_src}
-    ${lib_src}
-)
-
-target_link_libraries(nimble_steps_serialize m)
+add_subdirectory("deps/piot/nimble-steps-c/src/lib")
+add_subdirectory("deps/piot/clog/src/lib")
+add_subdirectory("deps/piot/tiny-libc/src/lib")
+add_subdirectory("deps/piot/imprint/src/lib")
+add_subdirectory("deps/piot/discoid-c/src/lib")
+add_subdirectory("deps/piot/flood-c/src/lib")
+add_subdirectory("lib")
