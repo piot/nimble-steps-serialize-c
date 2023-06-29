@@ -59,7 +59,7 @@ int nbsPendingStepsSerializeOutRanges(FldOutStream* stream, const NbsSteps* step
 
         int errorCode = nbsStepsOutSerializeFixedCountNoHeader(stream, range->startId, range->count, steps);
         if (errorCode < 0) {
-            CLOG_SOFT_ERROR("could not serialize with fixed count no header");
+            CLOG_SOFT_ERROR("could not serialize with fixed count no header")
             return errorCode;
         }
         currentId = (StepId) (range->startId + range->count);

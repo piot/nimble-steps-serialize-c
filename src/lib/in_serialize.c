@@ -38,7 +38,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
     uint8_t stepOctetCount;
     size_t addedSteps = 0;
 
-    CLOG_C_VERBOSE(&target->log, "stepsInSerialize firstStep %08X count %zu", firstStepId, stepsThatFollow);
+    CLOG_C_VERBOSE(&target->log, "stepsInSerialize firstStep %08X count %zu", firstStepId, stepsThatFollow)
 
     StepId lastIncludedStepIdInStream = (StepId) (firstStepId + stepsThatFollow - 1);
     if (lastIncludedStepIdInStream < target->expectedWriteId) {
@@ -63,7 +63,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
             continue;
         } else {
             // CLOG_VERBOSE("got exactly what I was waiting for: %d", stepId);
-            CLOG_C_VERBOSE(&target->log, "received client step %08X action %d", deserializedStepId, buf[3]);
+            CLOG_C_VERBOSE(&target->log, "received client step %08X action %d", deserializedStepId, buf[3])
         }
 
         if (target->stepsCount < NBS_WINDOW_SIZE / 2) {

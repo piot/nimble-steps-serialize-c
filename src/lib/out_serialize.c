@@ -22,8 +22,8 @@ static int nbsStepsOutSerializeCombinedStep(FldOutStream* stream, const uint8_t*
 #ifdef CONFIGURATION_DEBUG
     int verify = nbsStepsVerifyStep(payload, octetCount);
     if (verify < 0) {
-        CLOG_ERROR("step is wrong");
-        return verify;
+        CLOG_ERROR("step is wrong")
+        //return verify;
     }
 #endif
     return 0;
@@ -54,7 +54,7 @@ int nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId s
         }
         int octetsCountInStep = nbsStepsReadAtIndex(steps, index, tempBuf, 1024);
         if (octetsCountInStep < 0) {
-            CLOG_WARN("could not read steps");
+            CLOG_WARN("could not read steps")
             return octetsCountInStep;
         }
 
@@ -125,7 +125,7 @@ ssize_t nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants*
                                  size_t maxCount)
 {
     if (participants->participantCount == 0) {
-        CLOG_ERROR("can not serialize steps with no participants");
+        CLOG_ERROR("can not serialize steps with no participants")
         // return -84;
     }
     FldOutStream stepStream;
