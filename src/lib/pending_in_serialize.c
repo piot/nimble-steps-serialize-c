@@ -8,11 +8,11 @@
 
 /// Reads the header for incoming pending steps
 /// Typically called on the server to determine the receive status from the client.
-/// @param stream
-/// @param latestStepId
-/// @param receiveMask
-/// @param clientTimeLowerBitsMs
-/// @return
+/// @param stream inStream
+/// @param[out] latestStepId latest received stepId
+/// @param[out] receiveMask the receive mask
+/// @param[out] clientTimeLowerBitsMs the lower bits of the monotonic time from the client
+/// @return negative on error
 int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId, uint64_t* receiveMask,
                                      uint16_t* clientTimeLowerBitsMs)
 {
@@ -23,7 +23,7 @@ int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestS
     return 0;
 }
 
-static int nbsPendingStepsInSerializeRange(FldInStream* stream, StepId referenceId, NbsPendingSteps* target)
+static ssize_t nbsPendingStepsInSerializeRange(FldInStream* stream, StepId referenceId, NbsPendingSteps* target)
 {
     uint8_t deltaStepId;
     fldInStreamReadUInt8(stream, &deltaStepId);
@@ -57,20 +57,20 @@ static int nbsPendingStepsInSerializeRange(FldInStream* stream, StepId reference
         }
 
         stepId = (stepId + 1);
-        addedSteps += actualNewStepsAdded;
+        addedSteps += (size_t) actualNewStepsAdded;
     }
 
     CLOG_C_VERBOSE(&target->log, "added %zd steps from server", addedSteps)
 
-    return addedSteps;
+    return (ssize_t) addedSteps;
 }
 
 /// Reads the stream and writes into different ranges in the pending steps buffer
 /// Typically called on the client to receive steps from the server.
-/// @param stream
-/// @param target
+/// @param stream inStream
+/// @param target target buffer
 /// @return the total number of steps added or negative on error.
-int nbsPendingStepsInSerialize(FldInStream* stream, NbsPendingSteps* target)
+ssize_t nbsPendingStepsInSerialize(FldInStream* stream, NbsPendingSteps* target)
 {
     size_t totalStepsAdded = 0;
     uint32_t firstStepId;
@@ -83,13 +83,13 @@ int nbsPendingStepsInSerialize(FldInStream* stream, NbsPendingSteps* target)
                    rangesThatFollow, firstStepId)
 
     for (size_t i = 0U; i < rangesThatFollow; ++i) {
-        int stepsAdded = nbsPendingStepsInSerializeRange(stream, firstStepId, target);
+        ssize_t stepsAdded = nbsPendingStepsInSerializeRange(stream, firstStepId, target);
         if (stepsAdded < 0) {
             CLOG_C_SOFT_ERROR(&target->log, "problem adding server ranges")
             return stepsAdded;
         }
-        totalStepsAdded += stepsAdded;
+        totalStepsAdded += (size_t) stepsAdded;
     }
 
-    return totalStepsAdded;
+    return (ssize_t) totalStepsAdded;
 }

@@ -8,10 +8,10 @@
 
 /// Serialize the header for incoming steps
 /// Reads the first TickId and how many steps that follow in order from that one.
-/// @param stream
-/// @param firstStep
-/// @param stepsThatFollow
-/// @return
+/// @param stream in stream
+/// @param firstStep firstStep is set on success
+/// @param stepsThatFollow number of steps that follows
+/// @return negative on failure
 int nbsStepsInSerializeHeader(FldInStream* stream, StepId* firstStep, size_t* stepsThatFollow)
 {
     uint32_t firstStepIdValue;
@@ -27,10 +27,10 @@ int nbsStepsInSerializeHeader(FldInStream* stream, StepId* firstStep, size_t* st
 }
 
 /// Reads steps from the steam and inserts into the target steps buffer
-/// @param stream
-/// @param target
-/// @param firstStepId
-/// @param stepsThatFollow
+/// @param stream in stream
+/// @param target steps target to fill from stream
+/// @param firstStepId firstStepId in stream
+/// @param stepsThatFollow how many steps that follow
 /// @return negative on error
 int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepId, size_t stepsThatFollow)
 {
@@ -38,9 +38,9 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
     uint8_t stepOctetCount;
     size_t addedSteps = 0;
 
-    CLOG_C_VERBOSE(&target->log, "stepsInSerialize firstStep %08X count %zu", firstStepId, stepsThatFollow);
+    CLOG_C_VERBOSE(&target->log, "stepsInSerialize firstStep %08X count %zu", firstStepId, stepsThatFollow)
 
-    StepId lastIncludedStepIdInStream = firstStepId + stepsThatFollow - 1;
+    StepId lastIncludedStepIdInStream = (StepId) (firstStepId + stepsThatFollow - 1);
     if (lastIncludedStepIdInStream < target->expectedWriteId) {
         CLOG_C_VERBOSE(
             &target->log,
@@ -51,11 +51,11 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
     for (size_t i = 0; i < stepsThatFollow; ++i) {
         fldInStreamReadUInt8(stream, &stepOctetCount);
         fldInStreamReadOctets(stream, buf, stepOctetCount);
-        StepId deserializedStepId = firstStepId + i;
+        StepId deserializedStepId = (StepId) (firstStepId + i);
         if (deserializedStepId > target->expectedWriteId) {
             CLOG_EXECUTE(StepId expectedNext = target->expectedWriteId;)
             CLOG_EXECUTE(size_t missingStepCount = deserializedStepId - expectedNext;)
-            CLOG_VERBOSE("dropped %zu counts, filling them with default", missingStepCount);
+            CLOG_VERBOSE("dropped %zu counts, filling them with default", missingStepCount)
             return -44;
         } else if (deserializedStepId < target->expectedWriteId) {
             // CLOG_VERBOSE("waiting for %08X but received %d hopefully coming later in stream",
@@ -63,7 +63,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
             continue;
         } else {
             // CLOG_VERBOSE("got exactly what I was waiting for: %d", stepId);
-            CLOG_C_VERBOSE(&target->log, "received client step %08X action %d", deserializedStepId, buf[3]);
+            CLOG_C_VERBOSE(&target->log, "received client step %08X action %d", deserializedStepId, buf[3])
         }
 
         if (target->stepsCount < NBS_WINDOW_SIZE / 2) {
@@ -79,7 +79,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
 
             addedSteps++;
         } else {
-            CLOG_WARN("step buffer is full %zu step count out of %d", target->stepsCount, NBS_WINDOW_SIZE / 2);
+            CLOG_WARN("step buffer is full %zu step count out of %d", target->stepsCount, NBS_WINDOW_SIZE / 2)
         }
     }
 
@@ -101,8 +101,8 @@ static int participantsFindDuplicate(NimbleStepsOutSerializeLocalParticipant* pa
 
 /// Reads combined steps from the stream and returns the parts for each participant
 /// @param participants the target for the information about each participant step
-/// @param stream
-/// @return
+/// @param stream in stream
+/// @return negative on error
 int nbsStepsInSerializeStepsForParticipants(NimbleStepsOutSerializeLocalParticipants* participants, FldInStream* stream)
 {
     uint8_t participantCountValue;
@@ -113,7 +113,7 @@ int nbsStepsInSerializeStepsForParticipants(NimbleStepsOutSerializeLocalParticip
 
     participants->participantCount = participantCountValue;
     if (participants->participantCount > 8) {
-        CLOG_SOFT_ERROR("participant count is over max: %zu", participants->participantCount);
+        CLOG_SOFT_ERROR("participant count is over max: %zu", participants->participantCount)
         return -4;
     }
 
@@ -126,7 +126,7 @@ int nbsStepsInSerializeStepsForParticipants(NimbleStepsOutSerializeLocalParticip
 #if 1
         int index = participantsFindDuplicate(participants->participants, i, participant->participantId);
         if (index >= 0) {
-            CLOG_ERROR("Problem with duplicate %d", index);
+            CLOG_ERROR("Problem with duplicate %d", index)
         }
 #endif
 
@@ -136,14 +136,14 @@ int nbsStepsInSerializeStepsForParticipants(NimbleStepsOutSerializeLocalParticip
         // fldInStreamReadOctets(stream, (uint8_t*) participant->payload, participant->payloadCount);
     }
 
-    return stream->pos;
+    return (int) stream->pos;
 }
 
 /// Reads combined steps from the octets and returns the parts for each participant
-/// @param participants
-/// @param stepBuf
-/// @param octetCount
-/// @return
+/// @param participants local participants
+/// @param stepBuf buffer to read from
+/// @param octetCount number of octets in stepBuf
+/// @return negative on failure
 int nbsStepsInSerializeStepsForParticipantsFromOctets(NimbleStepsOutSerializeLocalParticipants* participants,
                                                       const uint8_t* stepBuf, size_t octetCount)
 {

@@ -10,11 +10,11 @@
 
 /// Writes receive status into the octet stream
 /// Typically used on the client to notify the server of the received pending steps
-/// @param stream
-/// @param latestStepId
-/// @param receiveMask
-/// @param monotonicTimeLowerBitsMs
-/// @return
+/// @param stream out stream
+/// @param latestStepId latest received stepId
+/// @param receiveMask the receive mask to send to host
+/// @param monotonicTimeLowerBitsMs lower bit monotonic time ms
+/// @return negative on error
 int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId, uint64_t receiveMask,
                                       uint16_t monotonicTimeLowerBitsMs)
 {
@@ -27,11 +27,11 @@ int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId,
 
 /// Writes ranges of steps into the octet stream
 /// Used on the server to send ranges with steps that the client is missing.
-/// @param stream
-/// @param steps
-/// @param ranges
-/// @param rangeCount
-/// @return
+/// @param stream out stream
+/// @param steps steps collection
+/// @param ranges ranges from steps collection to write to stream
+/// @param rangeCount number of ranges in ranges
+/// @return negative on error
 int nbsPendingStepsSerializeOutRanges(FldOutStream* stream, const NbsSteps* steps, NbsPendingRange* ranges,
                                       size_t rangeCount)
 {
@@ -44,25 +44,25 @@ int nbsPendingStepsSerializeOutRanges(FldOutStream* stream, const NbsSteps* step
     StepId currentId = referenceStepId;
 
     fldOutStreamWriteUInt32(stream, referenceStepId);
-    fldOutStreamWriteUInt8(stream, rangeCount);
+    fldOutStreamWriteUInt8(stream, (uint8_t) rangeCount);
 
     for (size_t i = 0; i < rangeCount; ++i) {
         const NbsPendingRange* range = &ranges[i];
         if (range->startId < currentId) {
-            CLOG_SOFT_ERROR("startId can not be lower than currentId %u vs %u", range->startId, currentId);
+            CLOG_SOFT_ERROR("startId can not be lower than currentId %u vs %u", range->startId, currentId)
             return -2;
         }
         StepId delta = range->startId - referenceStepId;
-        fldOutStreamWriteUInt8(stream, delta);
+        fldOutStreamWriteUInt8(stream, (uint8_t) delta);
         // CLOG_INFO("out serialize range header: %08X count:%zu", range->startId, range->count);
-        fldOutStreamWriteUInt8(stream, range->count);
+        fldOutStreamWriteUInt8(stream, (uint8_t) range->count);
 
         int errorCode = nbsStepsOutSerializeFixedCountNoHeader(stream, range->startId, range->count, steps);
         if (errorCode < 0) {
-            CLOG_SOFT_ERROR("could not serialize with fixed count no header");
+            CLOG_SOFT_ERROR("could not serialize with fixed count no header")
             return errorCode;
         }
-        currentId = range->startId + range->count;
+        currentId = (StepId) (range->startId + range->count);
     }
 
     return 0;
