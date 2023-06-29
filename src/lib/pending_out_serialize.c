@@ -49,7 +49,7 @@ int nbsPendingStepsSerializeOutRanges(FldOutStream* stream, const NbsSteps* step
     for (size_t i = 0; i < rangeCount; ++i) {
         const NbsPendingRange* range = &ranges[i];
         if (range->startId < currentId) {
-            CLOG_SOFT_ERROR("startId can not be lower than currentId %u vs %u", range->startId, currentId);
+            CLOG_SOFT_ERROR("startId can not be lower than currentId %u vs %u", range->startId, currentId)
             return -2;
         }
         StepId delta = range->startId - referenceStepId;
