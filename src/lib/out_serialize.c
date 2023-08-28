@@ -23,7 +23,7 @@ static int nbsStepsOutSerializeCombinedStep(FldOutStream* stream, const uint8_t*
     int verify = nbsStepsVerifyStep(payload, octetCount);
     if (verify < 0) {
         CLOG_ERROR("step is wrong")
-        //return verify;
+        // return verify;
     }
 #endif
     return 0;
@@ -139,9 +139,16 @@ ssize_t nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants*
         if (participant->participantId > 32) {
             CLOG_ERROR("too high participant id")
         }
-        fldOutStreamWriteUInt8(&stepStream, participant->participantId);
-        fldOutStreamWriteUInt8(&stepStream, (uint8_t) participant->payloadCount);
-        fldOutStreamWriteOctets(&stepStream, participant->payload, participant->payloadCount);
+
+        uint8_t mask = participant->connectState == NimbleSerializeParticipantConnectStateNormal ? 0x00 : 0x80;
+
+        fldOutStreamWriteUInt8(&stepStream, mask | participant->participantId);
+        if (mask) {
+            fldOutStreamWriteUInt8(&stepStream, participant->connectState);
+        } else {
+            fldOutStreamWriteUInt8(&stepStream, (uint8_t) participant->payloadCount);
+            fldOutStreamWriteOctets(&stepStream, participant->payload, participant->payloadCount);
+        }
     }
 
     return (ssize_t) stepStream.pos;

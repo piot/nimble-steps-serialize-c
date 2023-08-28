@@ -121,22 +121,27 @@ int nbsStepsInSerializeStepsForParticipants(NimbleStepsOutSerializeLocalParticip
         NimbleStepsOutSerializeLocalParticipant* participant = &participants->participants[i];
 
         fldInStreamReadUInt8(stream, &participant->participantId);
-
-        fldInStreamReadUInt8(stream, &participant->connectState);
-
-        uint8_t payloadCountValue;
-        fldInStreamReadUInt8(stream, &payloadCountValue);
+        bool hasMask = participant->participantId & 0x80;
+        if (hasMask) {
+            fldInStreamReadUInt8(stream, &participant->connectState);
+            participant->participantId = participant->participantId & 0x7F;
+            participant->payloadCount = 0;
+            participant->payload = 0;
+        } else {
+            uint8_t payloadCountValue;
+            fldInStreamReadUInt8(stream, &payloadCountValue);
 #if 1
-        int index = participantsFindDuplicate(participants->participants, i, participant->participantId);
-        if (index >= 0) {
-            CLOG_ERROR("Problem with duplicate %d", index)
-        }
+            int index = participantsFindDuplicate(participants->participants, i, participant->participantId);
+            if (index >= 0) {
+                CLOG_ERROR("Problem with duplicate %d", index)
+            }
 #endif
 
-        participant->payloadCount = payloadCountValue;
-        participant->payload = stream->p;
-        stream->p += participant->payloadCount;
-        // fldInStreamReadOctets(stream, (uint8_t*) participant->payload, participant->payloadCount);
+            participant->connectState = NimbleSerializeParticipantConnectStateNormal;
+            participant->payloadCount = payloadCountValue;
+            participant->payload = stream->p;
+            stream->p += participant->payloadCount;
+        }
     }
 
     return (int) stream->pos;

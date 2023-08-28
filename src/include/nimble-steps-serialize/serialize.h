@@ -7,7 +7,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <nimble-serialize/types.h>
+#include <nimble-steps-serialize/types.h>
 
 typedef struct NimbleStepsOutSerializeLocalParticipant {
     uint8_t participantId;
