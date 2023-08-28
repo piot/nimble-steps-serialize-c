@@ -121,6 +121,9 @@ int nbsStepsInSerializeStepsForParticipants(NimbleStepsOutSerializeLocalParticip
         NimbleStepsOutSerializeLocalParticipant* participant = &participants->participants[i];
 
         fldInStreamReadUInt8(stream, &participant->participantId);
+
+        fldInStreamReadUInt8(stream, &participant->connectState);
+
         uint8_t payloadCountValue;
         fldInStreamReadUInt8(stream, &payloadCountValue);
 #if 1
