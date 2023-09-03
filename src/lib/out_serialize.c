@@ -145,7 +145,7 @@ ssize_t nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants*
         fldOutStreamWriteUInt8(&stepStream, mask | participant->participantId);
         if (mask) {
             fldOutStreamWriteMarker(&stepStream, 0xbd);
-            fldOutStreamWriteUInt8(&stepStream, participant->connectState);
+            fldOutStreamWriteUInt8(&stepStream, (uint8_t) participant->connectState);
         } else {
             fldOutStreamWriteUInt8(&stepStream, (uint8_t) participant->payloadCount);
             fldOutStreamWriteOctets(&stepStream, participant->payload, participant->payloadCount);
