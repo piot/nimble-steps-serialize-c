@@ -1,0 +1,9 @@
+#ifndef NIMBLE_STEPS_SERIALIZE_TYPES_H
+#define NIMBLE_STEPS_SERIALIZE_TYPES_H
+typedef uint8_t NimbleSerializeParticipantConnectState;
+
+const static NimbleSerializeParticipantConnectState NimbleSerializeParticipantConnectStateNormal = 0;
+const static NimbleSerializeParticipantConnectState NimbleSerializeParticipantConnectStateStepNotProvidedInTime = 1;
+const static NimbleSerializeParticipantConnectState NimbleSerializeParticipantConnectStateStepWaitingForReconnect = 2;
+
+#endif

@@ -7,9 +7,11 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <nimble-steps-serialize/types.h>
 
 typedef struct NimbleStepsOutSerializeLocalParticipant {
     uint8_t participantId;
+    NimbleSerializeParticipantConnectState connectState;
     const uint8_t* payload;
     size_t payloadCount;
 } NimbleStepsOutSerializeLocalParticipant;
