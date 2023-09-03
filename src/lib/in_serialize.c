@@ -123,7 +123,10 @@ int nbsStepsInSerializeStepsForParticipants(NimbleStepsOutSerializeLocalParticip
         fldInStreamReadUInt8(stream, &participant->participantId);
         bool hasMask = participant->participantId & 0x80;
         if (hasMask) {
-            fldInStreamReadUInt8(stream, &participant->connectState);
+            uint8_t connectState;
+            fldInStreamCheckMarker(stream, 0xbd);
+            fldInStreamReadUInt8(stream, &connectState);
+            participant->connectState = (NimbleSerializeParticipantConnectState) connectState;
             participant->participantId = participant->participantId & 0x7F;
             participant->payloadCount = 0;
             participant->payload = 0;
