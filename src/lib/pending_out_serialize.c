@@ -13,14 +13,11 @@
 /// @param stream out stream
 /// @param latestStepId latest received stepId
 /// @param receiveMask the receive mask to send to host
-/// @param monotonicTimeLowerBitsMs lower bit monotonic time ms
 /// @return negative on error
-int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId, uint64_t receiveMask,
-                                      uint16_t monotonicTimeLowerBitsMs)
+int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId, uint64_t receiveMask)
 {
     fldOutStreamWriteUInt32(stream, latestStepId);
     fldOutStreamWriteUInt64(stream, receiveMask);
-    fldOutStreamWriteUInt16(stream, monotonicTimeLowerBitsMs);
 
     return 0;
 }

@@ -11,14 +11,11 @@
 /// @param stream inStream
 /// @param[out] latestStepId latest received stepId
 /// @param[out] receiveMask the receive mask
-/// @param[out] clientTimeLowerBitsMs the lower bits of the monotonic time from the client
 /// @return negative on error
-int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId, uint64_t* receiveMask,
-                                     uint16_t* clientTimeLowerBitsMs)
+int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId, uint64_t* receiveMask)
 {
     fldInStreamReadUInt32(stream, latestStepId);
     fldInStreamReadUInt64(stream, receiveMask);
-    fldInStreamReadUInt16(stream, clientTimeLowerBitsMs);
 
     return 0;
 }
