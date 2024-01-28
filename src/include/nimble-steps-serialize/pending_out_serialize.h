@@ -11,7 +11,7 @@ struct FldOutStream;
 struct NbsPendingRange;
 
 int nbsPendingStepsSerializeOutHeader(struct FldOutStream* stream, StepId latestStepId, uint64_t receiveMask);
-int nbsPendingStepsSerializeOutRanges(struct FldOutStream* stream, const NbsSteps* steps,
+ssize_t nbsPendingStepsSerializeOutRanges(struct FldOutStream* stream, const NbsSteps* steps,
                                       struct NbsPendingRange* ranges, size_t rangeCount);
 
 #endif

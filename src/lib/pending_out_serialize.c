@@ -29,8 +29,8 @@ int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId,
 /// @param ranges ranges from steps collection to write to stream
 /// @param rangeCount number of ranges in ranges
 /// @return negative on error
-int nbsPendingStepsSerializeOutRanges(FldOutStream* stream, const NbsSteps* steps, NbsPendingRange* ranges,
-                                      size_t rangeCount)
+ssize_t nbsPendingStepsSerializeOutRanges(FldOutStream* stream, const NbsSteps* steps, NbsPendingRange* ranges,
+                                          size_t rangeCount)
 {
     StepId referenceStepId = 0;
 
@@ -38,10 +38,19 @@ int nbsPendingStepsSerializeOutRanges(FldOutStream* stream, const NbsSteps* step
         referenceStepId = ranges[0].startId;
     }
 
+    if (fldOutStreamRemainingOctets(stream) < 16) {
+        return 0;
+    }
+
     StepId currentId = referenceStepId;
 
     fldOutStreamWriteUInt32(stream, referenceStepId);
-    fldOutStreamWriteUInt8(stream, (uint8_t) rangeCount);
+
+    FldOutStreamStoredPosition numberOfRangesPosition = fldOutStreamTell(stream);
+
+    fldOutStreamWriteUInt8(stream, (uint8_t) 0);
+
+    size_t numberOfRangesWritten = 0;
 
     for (size_t i = 0; i < rangeCount; ++i) {
         const NbsPendingRange* range = &ranges[i];
@@ -49,18 +58,45 @@ int nbsPendingStepsSerializeOutRanges(FldOutStream* stream, const NbsSteps* step
             CLOG_SOFT_ERROR("startId can not be lower than currentId %u vs %u", range->startId, currentId)
             return -2;
         }
+
+        if (fldOutStreamRemainingOctets(stream) < 4) {
+            break;
+        }
         StepId delta = range->startId - referenceStepId;
         fldOutStreamWriteUInt8(stream, (uint8_t) delta);
         // CLOG_INFO("out serialize range header: %08X count:%zu", range->startId, range->count);
-        fldOutStreamWriteUInt8(stream, (uint8_t) range->count);
 
-        int errorCode = nbsStepsOutSerializeFixedCountNoHeader(stream, range->startId, range->count, steps);
-        if (errorCode < 0) {
+        FldOutStreamStoredPosition rangeCountPosition = fldOutStreamTell(stream);
+
+        fldOutStreamWriteUInt8(stream, 0);
+
+        ssize_t writtenStepsInRange = nbsStepsOutSerializeFixedCountNoHeader(stream, range->startId, range->count,
+                                                                             steps);
+        if (writtenStepsInRange < 0) {
             CLOG_SOFT_ERROR("could not serialize with fixed count no header")
-            return errorCode;
+            return writtenStepsInRange;
+        }
+
+        FldOutStreamStoredPosition afterFixedCountPosition = fldOutStreamTell(stream);
+
+        fldOutStreamSeek(stream, rangeCountPosition);
+        fldOutStreamWriteUInt8(stream, (uint8_t) writtenStepsInRange);
+        fldOutStreamSeek(stream, afterFixedCountPosition);
+
+        numberOfRangesWritten++;
+
+        if ((size_t) writtenStepsInRange < range->count) {
+            break;
         }
         currentId = (StepId) (range->startId + range->count);
     }
 
-    return 0;
+    FldOutStreamStoredPosition afterAllWritesPosition = fldOutStreamTell(stream);
+
+    fldOutStreamSeek(stream, numberOfRangesPosition);
+    fldOutStreamWriteUInt8(stream, (uint8_t) numberOfRangesWritten);
+
+    fldOutStreamSeek(stream, afterAllWritesPosition);
+
+    return (ssize_t) numberOfRangesWritten;
 }

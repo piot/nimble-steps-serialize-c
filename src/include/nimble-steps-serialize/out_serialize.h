@@ -10,8 +10,8 @@
 
 struct FldOutStream;
 
-int nbsStepsOutSerialize(struct FldOutStream* stream, const NbsSteps* steps);
-int nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId startStepId, size_t redundancyCount,
+ssize_t nbsStepsOutSerialize(struct FldOutStream* stream, const NbsSteps* steps);
+ssize_t nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId startStepId, size_t redundancyCount,
                                            const NbsSteps* steps);
 ssize_t nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants* participants, uint8_t* buf,
                              size_t maxCount);
