@@ -6,6 +6,7 @@
 #include <flood/in_stream.h>
 #include <flood/out_stream.h>
 #include <nimble-steps-serialize/out_serialize.h>
+#include <mash/murmur.h>
 
 static int nbsStepsOutSerializeCombinedStep(FldOutStream* stream, const uint8_t* payload, size_t octetCount)
 {
@@ -36,7 +37,7 @@ static int nbsStepsOutSerializeCombinedStep(FldOutStream* stream, const uint8_t*
 /// @param steps the target buffer to write the steps to
 /// @return negative on error
 ssize_t nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, StepId startStepId, size_t stepCount,
-                                           const NbsSteps* steps)
+                                               const NbsSteps* steps)
 {
     StepId stepIdToWrite = startStepId;
     uint8_t tempBuf[1024];
@@ -64,6 +65,9 @@ ssize_t nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, Step
             return (ssize_t) stepCountWritten;
         }
 
+        CLOG_VERBOSE("serialize step %08X octetCount:%d hash:%04X", stepIdToWrite, octetsCountInStep,
+                  mashMurmurHash3(tempBuf, (size_t)octetsCountInStep))
+
         int serializeResult = nbsStepsOutSerializeCombinedStep(stream, tempBuf, (size_t) octetsCountInStep);
         if (serializeResult < 0) {
             return serializeResult;
@@ -77,7 +81,7 @@ ssize_t nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, Step
 }
 
 static ssize_t nbsStepsOutSerializeFixedCount(struct FldOutStream* stream, StepId startStepId, size_t redundancyCount,
-                                          const NbsSteps* steps)
+                                              const NbsSteps* steps)
 {
     StepId stepIdToWrite = startStepId;
 
@@ -116,13 +120,13 @@ ssize_t nbsStepsOutSerialize(struct FldOutStream* stream, const NbsSteps* steps)
     size_t maxNumberOfStepsInPacket = steps->stepsCount;
     StepId firstStepId = steps->expectedReadId;
 
-/*
-    if (maxNumberOfStepsInPacket > NimbleSerializeMaxmaxNumberOfStepsInPacket) {
-        maxNumberOfStepsInPacket = NimbleSerializeMaxmaxNumberOfStepsInPacket;
-        StepId lastAvailableId = (StepId) (steps->expectedReadId + steps->stepsCount - 1);
-        firstStepId = (StepId) (lastAvailableId - maxNumberOfStepsInPacket + 1);
-    }
-    */
+    /*
+        if (maxNumberOfStepsInPacket > NimbleSerializeMaxmaxNumberOfStepsInPacket) {
+            maxNumberOfStepsInPacket = NimbleSerializeMaxmaxNumberOfStepsInPacket;
+            StepId lastAvailableId = (StepId) (steps->expectedReadId + steps->stepsCount - 1);
+            firstStepId = (StepId) (lastAvailableId - maxNumberOfStepsInPacket + 1);
+        }
+        */
 
     return nbsStepsOutSerializeFixedCount(stream, firstStepId, maxNumberOfStepsInPacket, steps);
 }
@@ -169,11 +173,11 @@ ssize_t nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants*
 
         fldOutStreamWriteUInt8(&stepStream, mask | participant->participantId);
         if (mask) {
-            //CLOG_VERBOSE("serialize with mask: connectState: %d", participant->connectState)
+            // CLOG_VERBOSE("serialize with mask: connectState: %d", participant->connectState)
             fldOutStreamWriteMarker(&stepStream, 0xbd);
             fldOutStreamWriteUInt8(&stepStream, (uint8_t) participant->connectState);
         } else {
-            //CLOG_VERBOSE("serialize without mask")
+            // CLOG_VERBOSE("serialize without mask")
             if (participant->payload == 0 || participant->payloadCount == 0) {
                 CLOG_ERROR("illegal participant payload to out-serialize")
             }
