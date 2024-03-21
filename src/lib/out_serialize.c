@@ -65,8 +65,8 @@ ssize_t nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, Step
             return (ssize_t) stepCountWritten;
         }
 
-        CLOG_VERBOSE("serialize step %08X octetCount:%d hash:%04X", stepIdToWrite, octetsCountInStep,
-                  mashMurmurHash3(tempBuf, (size_t)octetsCountInStep))
+        //CLOG_VERBOSE("serialize step %08X octetCount:%d hash:%04X", stepIdToWrite, octetsCountInStep,
+          //        mashMurmurHash3(tempBuf, (size_t)octetsCountInStep))
 
         int serializeResult = nbsStepsOutSerializeCombinedStep(stream, tempBuf, (size_t) octetsCountInStep);
         if (serializeResult < 0) {
