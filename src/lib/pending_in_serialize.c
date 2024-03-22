@@ -34,7 +34,8 @@ static ssize_t nbsPendingStepsInSerializeRange(FldInStream* stream, StepId refer
     uint8_t stepOctetCount;
     size_t addedSteps = 0;
 
-    CLOG_C_VERBOSE(&target->log, "received range from server: firstStep range startId:%08X count: %d", stepId,
+    CLOG_EXECUTE(StepId lastStepId = stepId + stepsThatFollow - 1;)
+    CLOG_C_VERBOSE(&target->log, "received range from server: firstStep range %08X - %08X count:%d", stepId, lastStepId,
                    stepsThatFollow)
 
     for (size_t i = 0; i < stepsThatFollow; ++i) {
