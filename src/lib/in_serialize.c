@@ -55,8 +55,10 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
         if (deserializedStepId > target->expectedWriteId) {
             CLOG_EXECUTE(StepId expectedNext = target->expectedWriteId;)
             CLOG_EXECUTE(size_t missingStepCount = deserializedStepId - expectedNext;)
-            CLOG_VERBOSE("dropped %zu counts, filling them with default", missingStepCount)
-            return -44;
+            CLOG_C_NOTICE(&target->log,
+                          "resetting incoming prediction buffer. expected %08X, but received %08X. skipping %zu",
+                          expectedNext, deserializedStepId, missingStepCount)
+            nbsStepsReInit(target, deserializedStepId);
         } else if (deserializedStepId < target->expectedWriteId) {
             // CLOG_VERBOSE("waiting for %08X but received %d hopefully coming later in stream",
             // target->expectedWriteId, stepId);
