@@ -154,8 +154,7 @@ ssize_t nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants*
                                  size_t maxCount)
 {
     if (participants->participantCount == 0) {
-        CLOG_ERROR("can not serialize steps with no participants")
-        // return -84;
+        CLOG_NOTICE("no participants")
     }
     FldOutStream stepStream;
     fldOutStreamInit(&stepStream, stepBuf, maxCount);
