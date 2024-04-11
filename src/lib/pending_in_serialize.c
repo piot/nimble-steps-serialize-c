@@ -58,7 +58,7 @@ static ssize_t nbsPendingStepsInSerializeRange(FldInStream* stream, StepId refer
         addedSteps += (size_t) actualNewStepsAdded;
     }
 
-    CLOG_C_VERBOSE(&target->log, "added %zd steps from server", addedSteps)
+    CLOG_C_VERBOSE(&target->log, "added %zu steps from server", addedSteps)
 
     return (ssize_t) addedSteps;
 }
