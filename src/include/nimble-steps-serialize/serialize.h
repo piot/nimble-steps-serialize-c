@@ -11,7 +11,8 @@
 
 typedef struct NimbleStepsOutSerializeLocalParticipant {
     uint8_t participantId;
-    NimbleSerializeParticipantConnectState connectState;
+    uint8_t localPartyId; // Only available if stepType is joined
+    NimbleSerializeStepType stepType;
     const uint8_t* payload;
     size_t payloadCount;
 } NimbleStepsOutSerializeLocalParticipant;

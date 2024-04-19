@@ -5,8 +5,8 @@
 #include <clog/clog.h>
 #include <flood/in_stream.h>
 #include <flood/out_stream.h>
-#include <nimble-steps-serialize/out_serialize.h>
 #include <mash/murmur.h>
+#include <nimble-steps-serialize/out_serialize.h>
 
 static int nbsStepsOutSerializeCombinedStep(FldOutStream* stream, const uint8_t* payload, size_t octetCount)
 {
@@ -65,8 +65,8 @@ ssize_t nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, Step
             return (ssize_t) stepCountWritten;
         }
 
-        //CLOG_VERBOSE("serialize step %08X octetCount:%d hash:%04X", stepIdToWrite, octetsCountInStep,
-          //        mashMurmurHash3(tempBuf, (size_t)octetsCountInStep))
+        // CLOG_VERBOSE("serialize step %08X octetCount:%d hash:%04X", stepIdToWrite, octetsCountInStep,
+        //         mashMurmurHash3(tempBuf, (size_t)octetsCountInStep))
 
         int serializeResult = nbsStepsOutSerializeCombinedStep(stream, tempBuf, (size_t) octetsCountInStep);
         if (serializeResult < 0) {
@@ -165,13 +165,27 @@ ssize_t nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants*
             CLOG_ERROR("too high participant id %hhu", participant->participantId)
         }
 
-        uint8_t mask = participant->connectState == NimbleSerializeParticipantConnectStateNormal ? 0x00 : 0x80;
+        uint8_t mask = participant->stepType == NimbleSerializeStepTypeNormal ? 0x00 : 0x80;
 
         fldOutStreamWriteUInt8(&stepStream, mask | participant->participantId);
         if (mask) {
-            // CLOG_VERBOSE("serialize with mask: connectState: %d", participant->connectState)
+            // CLOG_VERBOSE("serialize with mask: stepType: %d", participant->stepType)
             fldOutStreamWriteMarker(&stepStream, 0xbd);
-            fldOutStreamWriteUInt8(&stepStream, (uint8_t) participant->connectState);
+            fldOutStreamWriteUInt8(&stepStream, (uint8_t) participant->stepType);
+            switch (participant->stepType) {
+                case NimbleSerializeStepTypeNormal:
+                    CLOG_ERROR("should not be possible with a mask")
+                    //break;
+                case NimbleSerializeStepTypeStepNotProvidedInTime:
+                    break;
+                case NimbleSerializeStepTypeWaitingForReJoin:
+                    break;
+                case NimbleSerializeStepTypeJoined:
+                    fldOutStreamWriteUInt8(&stepStream, participant->localPartyId);
+                    break;
+                case NimbleSerializeStepTypeLeft:
+                    break;
+            }
         } else {
             // CLOG_VERBOSE("serialize without mask")
             if (participant->payload == 0 || participant->payloadCount == 0) {

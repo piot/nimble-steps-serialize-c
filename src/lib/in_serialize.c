@@ -125,13 +125,26 @@ int nbsStepsInSerializeStepsForParticipants(NimbleStepsOutSerializeLocalParticip
         fldInStreamReadUInt8(stream, &participant->participantId);
         bool hasMask = participant->participantId & 0x80;
         if (hasMask) {
-            uint8_t connectState;
+            uint8_t stepType;
             fldInStreamCheckMarker(stream, 0xbd);
-            fldInStreamReadUInt8(stream, &connectState);
-            participant->connectState = (NimbleSerializeParticipantConnectState) connectState;
+            fldInStreamReadUInt8(stream, &stepType);
+            participant->stepType = (NimbleSerializeStepType) stepType;
             participant->participantId = participant->participantId & 0x7F;
             participant->payloadCount = 0;
             participant->payload = 0;
+            switch (participant->stepType) {
+                case NimbleSerializeStepTypeNormal:
+                    break;
+                case NimbleSerializeStepTypeStepNotProvidedInTime:
+                    break;
+                case NimbleSerializeStepTypeWaitingForReJoin:
+                    break;
+                case NimbleSerializeStepTypeJoined:
+                    fldInStreamReadUInt8(stream, &participant->localPartyId);
+                    break;
+                case NimbleSerializeStepTypeLeft:
+                    break;
+            }
         } else {
             uint8_t payloadCountValue;
             fldInStreamReadUInt8(stream, &payloadCountValue);
@@ -142,7 +155,7 @@ int nbsStepsInSerializeStepsForParticipants(NimbleStepsOutSerializeLocalParticip
             }
 #endif
 
-            participant->connectState = NimbleSerializeParticipantConnectStateNormal;
+            participant->stepType = NimbleSerializeStepTypeNormal;
             participant->payloadCount = payloadCountValue;
             participant->payload = stream->p;
             stream->p += participant->payloadCount;
