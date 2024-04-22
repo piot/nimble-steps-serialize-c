@@ -349,7 +349,7 @@ int addExampleSteps(NbsSteps* target, StepId firstStepId)
     participants.participants[0].participantIndex = 2;
     participants.participantCount = 1;
 
-    int octetsWritten = nbsStepsOutSerializeStep(&participants, stepBuffer, 1024);
+    int octetsWritten = nbsStepsOutSerializeCombinedStep(&participants, stepBuffer, 1024);
     if (octetsWritten < 0) {
         return octetsWritten;
     }
@@ -363,7 +363,7 @@ int addExampleSteps(NbsSteps* target, StepId firstStepId)
     participants.participants[0].payload = (const uint8_t*) ", World!";
     participants.participants[0].payloadCount = 8;
     participants.participants[0].connectState = NimbleSerializeStepTypeNormal;
-    octetsWritten = nbsStepsOutSerializeStep(&participants, stepBuffer, 1024);
+    octetsWritten = nbsStepsOutSerializeCombinedStep(&participants, stepBuffer, 1024);
     if (octetsWritten < 0) {
         return octetsWritten;
     }
@@ -403,7 +403,7 @@ int testReceiveServer(const uint8_t* data, size_t octetCount)
     participants.pariticpants[0].connectState = NimbleSerializeStepTypeNormal;
     participants.participantCount = 1;
 
-    int octetsWritten = nbsStepsOutSerializeStep(&participants, stepBuffer, 1024);
+    int octetsWritten = nbsStepsOutSerializeCombinedStep(&participants, stepBuffer, 1024);
     if (octetsWritten < 0) {
         return octetsWritten;
     }
@@ -583,7 +583,7 @@ int serverSerializeIn(Server* self)
     participants.participants[0].connectState = NimbleSerializeStepTypeNormal;
     participants.participantCount = 1;
 
-    int defaultStepBufferOctetCount = nbsStepsOutSerializeStep(&participants, defaultStepBuffer, 1024);
+    int defaultStepBufferOctetCount = nbsStepsOutSerializeCombinedStep(&participants, defaultStepBuffer, 1024);
     if (defaultStepBufferOctetCount < 0) {
         return defaultStepBufferOctetCount;
     }

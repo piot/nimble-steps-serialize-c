@@ -65,7 +65,8 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
             continue;
         } else {
             // CLOG_VERBOSE("got exactly what I was waiting for: %d", stepId);
-            CLOG_C_VERBOSE(&target->log, "received client step %08X game specific action %d", deserializedStepId, buf[3])
+            CLOG_C_VERBOSE(&target->log, "received client step %08X game specific action %d", deserializedStepId,
+                           buf[3])
         }
 
         if (target->stepsCount < NBS_WINDOW_SIZE / 2) {
@@ -86,6 +87,54 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
     }
 
     return (int) addedSteps;
+}
+
+/// Reads a single predicted step.
+///
+/// Predicted step is just a stepOctetCount and octets.
+/// @param stream to read from
+/// @param deserializedStepId stepId that the stream should be stored in
+/// @param target target step buffer
+/// @return negative on error
+int nbsStepsInSerializeSinglePredictedStep(FldInStream* stream, StepId deserializedStepId, NbsSteps* target)
+{
+    uint8_t buf[1024];
+    uint8_t stepOctetCount;
+
+    fldInStreamReadUInt8(stream, &stepOctetCount);
+    fldInStreamReadOctets(stream, buf, stepOctetCount);
+    if (deserializedStepId > target->expectedWriteId) {
+        CLOG_EXECUTE(StepId expectedNext = target->expectedWriteId;)
+        CLOG_EXECUTE(size_t missingStepCount = deserializedStepId - expectedNext;)
+        CLOG_C_NOTICE(&target->log,
+                      "resetting incoming prediction buffer. expected %08X, but received %08X. skipping %zu",
+                      expectedNext, deserializedStepId, missingStepCount)
+        nbsStepsReInit(target, deserializedStepId);
+    } else if (deserializedStepId < target->expectedWriteId) {
+        // CLOG_VERBOSE("waiting for %08X but received %d hopefully coming later in stream",
+        // target->expectedWriteId, stepId);
+        return 0;
+    } else {
+        // CLOG_VERBOSE("got exactly what I was waiting for: %d", stepId);
+        CLOG_C_VERBOSE(&target->log, "received client step %08X game specific action %d", deserializedStepId, buf[3])
+    }
+
+    if (target->stepsCount < NBS_WINDOW_SIZE / 2) {
+        if (discoidBufferWriteAvailable(&target->stepsData) <= stepOctetCount) {
+            CLOG_WARN("step buffer count is not full, but the step-data is. %zu left, but needed to write %d",
+                      discoidBufferWriteAvailable(&target->stepsData), stepOctetCount)
+            return -55;
+        }
+        int errorCode = nbsStepsWrite(target, deserializedStepId, buf, stepOctetCount);
+        if (errorCode < 0) {
+            return errorCode;
+        }
+
+    } else {
+        CLOG_WARN("step buffer is full %zu step count out of %d", target->stepsCount, NBS_WINDOW_SIZE / 2)
+    }
+
+    return 0;
 }
 
 static int participantsFindDuplicate(NimbleStepsOutSerializeLocalParticipant* participants, size_t count,
