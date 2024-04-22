@@ -65,7 +65,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
             continue;
         } else {
             // CLOG_VERBOSE("got exactly what I was waiting for: %d", stepId);
-            CLOG_C_VERBOSE(&target->log, "received client step %08X action %d", deserializedStepId, buf[3])
+            CLOG_C_VERBOSE(&target->log, "received client step %08X game specific action %d", deserializedStepId, buf[3])
         }
 
         if (target->stepsCount < NBS_WINDOW_SIZE / 2) {
