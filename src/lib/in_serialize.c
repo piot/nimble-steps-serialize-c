@@ -95,7 +95,7 @@ int nbsStepsInSerialize(FldInStream* stream, NbsSteps* target, StepId firstStepI
 /// @param stream to read from
 /// @param deserializedStepId stepId that the stream should be stored in
 /// @param target target step buffer
-/// @return negative on error
+/// @return number of steps added, negative on error
 int nbsStepsInSerializeSinglePredictedStep(FldInStream* stream, StepId deserializedStepId, NbsSteps* target)
 {
     uint8_t buf[1024];
@@ -134,7 +134,7 @@ int nbsStepsInSerializeSinglePredictedStep(FldInStream* stream, StepId deseriali
         CLOG_WARN("step buffer is full %zu step count out of %d", target->stepsCount, NBS_WINDOW_SIZE / 2)
     }
 
-    return 0;
+    return 1;
 }
 
 static int participantsFindDuplicate(NimbleStepsOutSerializeLocalParticipant* participants, size_t count,
