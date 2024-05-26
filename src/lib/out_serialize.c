@@ -8,7 +8,7 @@
 #include <mash/murmur.h>
 #include <nimble-steps-serialize/out_serialize.h>
 
-static int nbsStepsOutSerializeCombinedStep(FldOutStream* stream, const uint8_t* payload, size_t octetCount)
+static int nbsStepsOutSerializeOctetCountAndOctets(FldOutStream* stream, const uint8_t* payload, size_t octetCount)
 {
     int errorCode = fldOutStreamWriteUInt8(stream, (uint8_t) octetCount);
     if (errorCode < 0) {
@@ -68,7 +68,7 @@ ssize_t nbsStepsOutSerializeFixedCountNoHeader(struct FldOutStream* stream, Step
         // CLOG_VERBOSE("serialize step %08X octetCount:%d hash:%04X", stepIdToWrite, octetsCountInStep,
         //         mashMurmurHash3(tempBuf, (size_t)octetsCountInStep))
 
-        int serializeResult = nbsStepsOutSerializeCombinedStep(stream, tempBuf, (size_t) octetsCountInStep);
+        int serializeResult = nbsStepsOutSerializeOctetCountAndOctets(stream, tempBuf, (size_t) octetsCountInStep);
         if (serializeResult < 0) {
             return serializeResult;
         }
@@ -150,8 +150,8 @@ size_t nbsStepsOutSerializeCalculateCombinedSize(size_t participantCount, size_t
 /// @param stepBuf target step buffer
 /// @param maxCount maximum count to fill
 /// @return number of octets written or error
-ssize_t nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants* participants, uint8_t* stepBuf,
-                                 size_t maxCount)
+ssize_t nbsStepsOutSerializeCombinedStep(const NimbleStepsOutSerializeLocalParticipants* participants, uint8_t* stepBuf,
+                                         size_t maxCount)
 {
     if (participants->participantCount == 0) {
         CLOG_NOTICE("no participants")
@@ -175,7 +175,7 @@ ssize_t nbsStepsOutSerializeStep(const NimbleStepsOutSerializeLocalParticipants*
             switch (participant->stepType) {
                 case NimbleSerializeStepTypeNormal:
                     CLOG_ERROR("should not be possible with a mask")
-                    //break;
+                    // break;
                 case NimbleSerializeStepTypeStepNotProvidedInTime:
                     break;
                 case NimbleSerializeStepTypeWaitingForReJoin:

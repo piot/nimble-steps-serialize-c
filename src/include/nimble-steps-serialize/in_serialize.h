@@ -16,5 +16,6 @@ int nbsStepsInSerializeStepsForParticipants(NimbleStepsOutSerializeLocalParticip
                                          struct FldInStream* stream);
 int nbsStepsInSerializeStepsForParticipantsFromOctets(NimbleStepsOutSerializeLocalParticipants* participants,
                                                const uint8_t* stepBuf, size_t maxCount);
+int nbsStepsInSerializeSinglePredictedStep(struct FldInStream* stream, StepId deserializedStepId, NbsSteps* target);
 
 #endif
