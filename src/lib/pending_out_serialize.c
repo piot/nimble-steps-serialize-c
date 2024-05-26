@@ -32,15 +32,17 @@ int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId,
 ssize_t nbsPendingStepsSerializeOutRanges(FldOutStream* stream, const NbsSteps* steps, NbsPendingRange* ranges,
                                           size_t rangeCount)
 {
-    StepId referenceStepId = 0;
-
-    if (rangeCount > 0) {
-        referenceStepId = ranges[0].startId;
+    if (fldOutStreamRemainingOctets(stream) < 16) {
+        return -1;
     }
 
-    if (fldOutStreamRemainingOctets(stream) < 16) {
+    if (rangeCount == 0) {
+        fldOutStreamWriteUInt32(stream, 0);
+        fldOutStreamWriteUInt8(stream, (uint8_t) 0);
         return 0;
     }
+
+    StepId referenceStepId = ranges[0].startId;
 
     StepId currentId = referenceStepId;
 
@@ -59,7 +61,7 @@ ssize_t nbsPendingStepsSerializeOutRanges(FldOutStream* stream, const NbsSteps* 
             return -2;
         }
 
-        if (fldOutStreamRemainingOctets(stream) < 4) {
+        if (fldOutStreamRemainingOctets(stream) < 8) {
             break;
         }
         StepId delta = range->startId - referenceStepId;

@@ -30,7 +30,9 @@ static ssize_t nbsPendingStepsInSerializeRange(FldInStream* stream, StepId refer
     uint8_t stepsThatFollow;
     fldInStreamReadUInt8(stream, &stepsThatFollow);
 
-    uint8_t buf[1024];
+#define MAX_STEP_OCTET_COUNT (256)
+
+    uint8_t buf[MAX_STEP_OCTET_COUNT];
     uint8_t stepOctetCount;
     size_t addedSteps = 0;
 
@@ -40,6 +42,9 @@ static ssize_t nbsPendingStepsInSerializeRange(FldInStream* stream, StepId refer
 
     for (size_t i = 0; i < stepsThatFollow; ++i) {
         fldInStreamReadUInt8(stream, &stepOctetCount);
+        if ((size_t )stepOctetCount > sizeof(buf)) {
+            return -1;
+        }
         fldInStreamReadOctets(stream, buf, stepOctetCount);
 #if 0
         if (buf[3] != 0) {
