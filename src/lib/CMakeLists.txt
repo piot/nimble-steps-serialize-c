@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.16.3)
 add_library(nimble-steps-serialize STATIC 
   in_serialize.c
   out_serialize.c
+        types.c
   pending_in_serialize.c
   pending_out_serialize.c)
 

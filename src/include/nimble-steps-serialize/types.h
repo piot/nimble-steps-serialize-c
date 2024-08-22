@@ -9,4 +9,6 @@ typedef enum NimbleSerializeStepType {
     NimbleSerializeStepTypeLeft
 } NimbleSerializeStepType;
 
+const char* nimbleSerializeStepTypeToString(NimbleSerializeStepType type);
+
 #endif
