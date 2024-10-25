@@ -18,7 +18,7 @@ int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestS
     return 0;
 }
 
-static ssize_t nbsPendingStepsInSerializeRange(FldInStream* stream, StepId referenceId, NbsPendingSteps* target)
+static ssize_t nbsPendingStepsInSerializeRange(FldInStream* stream, StepId referenceId, NbsSteps* target)
 {
     uint8_t deltaStepId;
     fldInStreamReadUInt8(stream, &deltaStepId);
@@ -40,7 +40,7 @@ static ssize_t nbsPendingStepsInSerializeRange(FldInStream* stream, StepId refer
 
     for (size_t i = 0; i < stepsThatFollow; ++i) {
         fldInStreamReadUInt8(stream, &stepOctetCount);
-        if ((size_t )stepOctetCount > sizeof(buf)) {
+        if ((size_t) stepOctetCount > sizeof(buf)) {
             return -1;
         }
         fldInStreamReadOctets(stream, buf, stepOctetCount);
@@ -50,15 +50,17 @@ static ssize_t nbsPendingStepsInSerializeRange(FldInStream* stream, StepId refer
         }
 #endif
 
-        // CLOG_VERBOSE("pending steps, trying to set step %08X octetCount:%d", stepId, stepOctetCount);
-        int actualNewStepsAdded = nbsPendingStepsTrySet(target, stepId, buf, stepOctetCount);
-        if (actualNewStepsAdded < 0) {
-            CLOG_C_SOFT_ERROR(&target->log, "failed to set step %08X", stepId)
-            return actualNewStepsAdded;
+        if (stepId == target->expectedWriteId) {
+            // CLOG_VERBOSE("pending steps, trying to set step %08X octetCount:%d", stepId, stepOctetCount);
+            int actualNewStepsAdded = nbsStepsWrite(target, stepId, buf, stepOctetCount);
+            if (actualNewStepsAdded < 0) {
+                CLOG_C_SOFT_ERROR(&target->log, "failed to set step %08X", stepId)
+                return actualNewStepsAdded;
+            }
+            addedSteps += 1;
         }
 
         stepId = (stepId + 1);
-        addedSteps += (size_t) actualNewStepsAdded;
     }
 
     CLOG_C_VERBOSE(&target->log, "added %zu steps from server", addedSteps)
@@ -71,7 +73,7 @@ static ssize_t nbsPendingStepsInSerializeRange(FldInStream* stream, StepId refer
 /// @param stream inStream
 /// @param target target buffer
 /// @return the total number of steps added or negative on error.
-ssize_t nbsPendingStepsInSerialize(FldInStream* stream, NbsPendingSteps* target)
+ssize_t nbsPendingStepsInSerialize(FldInStream* stream, NbsSteps * target)
 {
     size_t totalStepsAdded = 0;
     uint32_t firstStepId;

@@ -8,10 +8,14 @@
 #include <nimble-steps/steps.h>
 
 struct FldOutStream;
-struct NbsPendingRange;
 
-int nbsPendingStepsSerializeOutHeader(struct FldOutStream* stream, StepId latestStepId, uint64_t receiveMask);
+typedef struct NbsPendingRange {
+    StepId startId;
+    size_t count;
+} NbsPendingRange;
+
+int nbsPendingStepsSerializeOutHeader(struct FldOutStream* stream, StepId latestStepId);
 ssize_t nbsPendingStepsSerializeOutRanges(struct FldOutStream* stream, const NbsSteps* steps,
-                                      struct NbsPendingRange* ranges, size_t rangeCount);
+                                          struct NbsPendingRange* ranges, size_t rangeCount);
 
 #endif

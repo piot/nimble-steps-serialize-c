@@ -6,18 +6,16 @@
 #include <flood/out_stream.h>
 #include <nimble-steps-serialize/out_serialize.h>
 #include <nimble-steps-serialize/pending_out_serialize.h>
-#include <nimble-steps/pending_steps.h>
+#include <nimble-steps/steps.h>
 
 /// Writes receive status into the octet stream
 /// Typically used on the client to notify the server of the received pending steps
 /// @param stream out stream
 /// @param latestStepId latest received stepId
-/// @param receiveMask the receive mask to send to host
 /// @return negative on error
-int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId, uint64_t receiveMask)
+int nbsPendingStepsSerializeOutHeader(FldOutStream* stream, StepId latestStepId)
 {
     fldOutStreamWriteUInt32(stream, latestStepId);
-    fldOutStreamWriteUInt64(stream, receiveMask);
 
     return 0;
 }
