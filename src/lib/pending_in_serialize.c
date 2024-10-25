@@ -10,12 +10,10 @@
 /// Typically called on the server to determine the receive status from the client.
 /// @param stream inStream
 /// @param[out] latestStepId latest received stepId
-/// @param[out] receiveMask the receive mask
 /// @return negative on error
-int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId, uint64_t* receiveMask)
+int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId)
 {
     fldInStreamReadUInt32(stream, latestStepId);
-    fldInStreamReadUInt64(stream, receiveMask);
 
     return 0;
 }

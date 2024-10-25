@@ -6,25 +6,6 @@
 #include <flood/in_stream.h>
 #include <nimble-steps-serialize/in_serialize.h>
 
-/// Serialize the header for incoming steps
-/// Reads the first TickId and how many steps that follow in order from that one.
-/// @param stream in stream
-/// @param firstStep firstStep is set on success
-/// @param stepsThatFollow number of steps that follows
-/// @return negative on failure
-int nbsStepsInSerializeHeader(FldInStream* stream, StepId* firstStep, size_t* stepsThatFollow)
-{
-    uint32_t firstStepIdValue;
-    fldInStreamReadUInt32(stream, &firstStepIdValue);
-
-    uint8_t stepsThatFollowValue;
-    fldInStreamReadUInt8(stream, &stepsThatFollowValue);
-
-    *firstStep = firstStepIdValue;
-    *stepsThatFollow = stepsThatFollowValue;
-
-    return 0;
-}
 
 /// Reads steps from the steam and inserts into the target steps buffer
 /// @param stream in stream
@@ -111,8 +92,7 @@ int nbsStepsInSerializeSinglePredictedStep(FldInStream* stream, StepId deseriali
                       expectedNext, deserializedStepId, missingStepCount)
         nbsStepsReInit(target, deserializedStepId);
     } else if (deserializedStepId < target->expectedWriteId) {
-        // CLOG_VERBOSE("waiting for %08X but received %d hopefully coming later in stream",
-        // target->expectedWriteId, stepId);
+
         return 0;
     } else {
         // CLOG_VERBOSE("got exactly what I was waiting for: %d", stepId);

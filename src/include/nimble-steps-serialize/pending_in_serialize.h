@@ -12,7 +12,7 @@
 
 struct FldInStream;
 
-int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId, uint64_t* receiveMask);
+int nbsPendingStepsInSerializeHeader(struct FldInStream* stream, StepId* latestStepId);
 ssize_t nbsPendingStepsInSerialize(struct FldInStream* stream, NbsPendingSteps* target);
 
 #endif
